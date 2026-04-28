@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Gastos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;min-height:100vh;display:flex;justify-content:center}
+.app{width:100%;max-width:420px;background:#f0f2f5;min-height:100vh;display:flex;flex-direction:column;position:relative}
+.topbar{background:#1a2e5a;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:17px;font-weight:600;letter-spacing:0.01em}
+.topbar-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;opacity:0.9;cursor:pointer}
+.content{flex:1;padding:12px;display:flex;flex-direction:column;gap:12px;padding-bottom:90px}
+.card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;color:#111}
+.date-badge{font-size:12px;color:#777;display:flex;align-items:center;gap:4px}
+.banks-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bank-card{border:1px solid #eee;border-radius:10px;padding:12px}
+.bank-name{font-weight:700;font-size:15px;margin-bottom:2px}
+.bank-name.santander{color:#cc0000}
+.bank-name.invex{color:#c41230;font-style:italic}
+.bank-corte{font-size:11px;color:#888;margin-bottom:6px}
+.period-badge{font-size:10px;padding:3px 8px;border-radius:20px;display:inline-block;margin-bottom:8px;font-weight:500}
+.period-badge.blue{background:#ddeeff;color:#185FA5}
+.period-badge.green{background:#eaf3de;color:#3B6D11}
+.bank-label{font-size:11px;color:#888;margin-bottom:2px}
+.bank-total{font-size:18px;font-weight:700;color:#cc0000;margin-bottom:6px}
+.progress-bar{height:5px;background:#eee;border-radius:3px;overflow:hidden;margin-bottom:4px}
+.progress-fill{height:100%;background:#cc0000;border-radius:3px}
+.progress-label{font-size:10px;color:#aaa}
+.seg-control{display:grid;grid-template-columns:1fr 1fr;border-radius:8px;overflow:hidden;border:1px solid #ddd;margin-bottom:12px}
+.seg-btn{padding:9px;text-align:center;font-size:14px;cursor:pointer;border:none;background:#fff;color:#666;font-family:inherit;font-weight:500}
+.seg-btn.active.egreso{background:#cc0000;color:#fff}
+.seg-btn.active.ingreso{background:#1a2e5a;color:#fff}
+.field-label{font-size:13px;color:#666;margin-bottom:6px;font-weight:500}
+.field-wrap{margin-bottom:12px}
+.bank-select,.desc-input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #ddd;font-size:14px;background:#fff;color:#111;font-family:inherit;outline:none}
+.bank-select:focus,.desc-input:focus,.amount-input:focus{border-color:#1a2e5a}
+.amount-wrap{position:relative}
+.amount-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#666;font-size:14px}
+.amount-input{width:100%;padding:10px 12px 10px 28px;border-radius:8px;border:1px solid #ddd;font-size:16px;background:#fff;color:#111;font-family:inherit;outline:none}
+.save-btn{width:100%;padding:13px;border-radius:10px;background:#1a2e5a;color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+.save-btn:hover{background:#243d75}
+.save-btn:active{transform:scale(0.98)}
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hist-list{display:flex;flex-direction:column}
+.hist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.hist-item:last-child{border-bottom:none}
+.hist-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:#fff0f0}
+.hist-info{flex:1}
+.hist-bank{font-size:14px;font-weight:600;color:#111}
+.hist-desc{font-size:12px;color:#888;margin-top:1px}
+.hist-type{font-size:12px;margin-top:1px;font-weight:500}
+.hist-type.egreso{color:#cc0000}
+.hist-type.ingreso{color:#3B6D11}
+.hist-right{text-align:right}
+.hist-amount{font-size:14px;font-weight:700}
+.hist-amount.egreso{color:#cc0000}
+.hist-amount.ingreso{color:#3B6D11}
+.hist-date{font-size:11px;color:#aaa;margin-top:2px}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:20px;padding:0 4px;line-height:1}
+.del-btn:hover{color:#cc0000}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:420px;max-width:100%;background:#fff;border-top:1px solid #eee;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 0 16px;z-index:10}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px}
+.nav-label{font-size:11px;color:#aaa}
+.nav-label.active{color:#1a2e5a;font-weight:600}
+.empty-hist{text-align:center;color:#bbb;font-size:13px;padding:1.5rem 0}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1a2e5a;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:99;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="toast" id="toast">Movimiento guardado</div>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-icon">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </div>
+    <div class="topbar-title">Control de Gastos</div>
+    <div class="topbar-icon">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="18" y="3" width="4" height="18" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="2" y="14" width="4" height="7" rx="1"/></svg>
+    </div>
+  </div>
+  <div class="content">
+    <!-- Corte actual -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="18" height="18" fill="none" stroke="#1a2e5a" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Corte actual
+        </div>
+        <div class="date-badge">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span id="today-label"></span>
+        </div>
+      </div>
+      <div class="banks-grid">
+        <div class="bank-card">
+          <div class="bank-name santander">Santander</div>
+          <div class="bank-corte">Corte: 30 de cada mes</div>
+          <div class="period-badge blue" id="s-period"></div>
+          <div class="bank-label">Total egresos</div>
+          <div class="bank-total" id="s-total">$0.00</div>
+          <div class="progress-bar"><div class="progress-fill" id="s-progress" style="width:0%"></div></div>
+          <div class="progress-label" id="s-days"></div>
+        </div>
+        <div class="bank-card">
+          <div class="bank-name invex">invex</div>
+          <div class="bank-corte">Corte: 26 de cada mes</div>
+          <div class="period-badge green" id="i-period"></div>
+          <div class="bank-label">Total egresos</div>
+          <div class="bank-total" id="i-total">$0.00</div>
+          <div class="progress-bar"><div class="progress-fill" id="i-progress" style="width:0%"></div></div>
+          <div class="progress-label" id="i-days"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Nuevo movimiento -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="18" height="18" fill="none" stroke="#1a2e5a" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Nuevo movimiento
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="field-label">Tipo de movimiento</div>
+        <div class="seg-control">
+          <button class="seg-btn active egreso" id="btn-egreso" onclick="setTipo('egreso')">Egreso</button>
+          <button class="seg-btn" id="btn-ingreso" onclick="setTipo('ingreso')">Ingreso</button>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Banco</div>
+        <select class="bank-select" id="sel-banco">
+          <option value="Santander">🔴 Santander</option>
+          <option value="Invex">🔴 Invex</option>
+        </select>
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Descripción</div>
+        <input class="desc-input" id="inp-desc" placeholder="Ej. Súper, Gasolina, Nómina..." />
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Monto</div>
+        <div class="amount-wrap">
+          <span class="amount-prefix">$</span>
+          <input class="amount-input" id="inp-monto" type="number" placeholder="0.00" min="0" step="0.01" />
+        </div>
+      </div>
+      <button class="save-btn" onclick="guardar()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar movimiento
+      </button>
+    </div>
+    <!-- Historial -->
+    <div class="card">
+      <div class="hist-header">
+        <div class="card-title">
+          <svg width="18" height="18" fill="none" stroke="#1a2e5a" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Historial reciente
+        </div>
+      </div>
+      <div class="hist-list" id="hist-list">
+        <div class="empty-hist">Sin movimientos aún</div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <svg width="22" height="22" fill="none" stroke="#1a2e5a" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="nav-label active">Inicio</span>
+    </div>
+    <div class="nav-item" onclick="document.getElementById('inp-monto').focus()">
+      <svg width="22" height="22" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span class="nav-label">Nuevo</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span class="nav-label">Historial</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="nav-label">Ajustes</span>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBYKluSaB9AJw3WIQg1V2VYQqWoNJ4Pzk4",
+  authDomain: "mis-gastos-9b47f.firebaseapp.com",
+  projectId: "mis-gastos-9b47f",
+  storageBucket: "mis-gastos-9b47f.firebasestorage.app",
+  messagingSenderId: "505273629372",
+  appId: "1:505273629372:web:00b657c6aae2e33234aeb9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let tipo = 'egreso';
+let movimientos = [];
+const today = new Date();
+
+function fmtDate(d){return d.toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'})}
+function fmtMoney(n){return '$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+function getPeriodo(corte){
+  const d=today.getDate(),m=today.getMonth(),y=today.getFullYear();
+  let inicio,fin;
+  if(d<=corte){
+    const pm=m===0?11:m-1,py=m===0?y-1:y;
+    inicio=new Date(py,pm,corte+1);fin=new Date(y,m,corte);
+  }else{
+    inicio=new Date(y,m,corte+1);
+    const nm=m===11?0:m+1,ny=m===11?y+1:y;
+    fin=new Date(ny,nm,corte);
+  }
+  const totalDias=Math.round((fin-inicio)/86400000)+1;
+  const trans=Math.min(Math.round((today-inicio)/86400000)+1,totalDias);
+  const pct=Math.min(100,Math.round(trans/totalDias*100));
+  const fr=d=>d.toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
+  return{inicio,fin,totalDias,trans,pct,label:`${fr(inicio)} — ${fr(fin)}`};
+}
+
+function initCortes(){
+  document.getElementById('today-label').textContent=fmtDate(today);
+  const sp=getPeriodo(30);
+  document.getElementById('s-period').textContent=sp.label;
+  document.getElementById('s-progress').style.width=sp.pct+'%';
+  document.getElementById('s-days').textContent=`Días transcurridos: ${sp.trans} de ~${sp.totalDias}`;
+  const ip=getPeriodo(26);
+  document.getElementById('i-period').textContent=ip.label;
+  document.getElementById('i-progress').style.width=ip.pct+'%';
+  document.getElementById('i-days').textContent=`Días transcurridos: ${ip.trans} de ~${ip.totalDias}`;
+}
+
+function updateTotales(){
+  const sp=getPeriodo(30),ip=getPeriodo(26);
+  const sT=movimientos.filter(m=>m.banco==='Santander'&&m.tipo==='egreso'&&new Date(m.fecha+'T12:00:00')>=sp.inicio&&new Date(m.fecha+'T12:00:00')<=sp.fin).reduce((s,m)=>s+m.monto,0);
+  const iT=movimientos.filter(m=>m.banco==='Invex'&&m.tipo==='egreso'&&new Date(m.fecha+'T12:00:00')>=ip.inicio&&new Date(m.fecha+'T12:00:00')<=ip.fin).reduce((s,m)=>s+m.monto,0);
+  document.getElementById('s-total').textContent=fmtMoney(sT);
+  document.getElementById('i-total').textContent=fmtMoney(iT);
+}
+
+window.setTipo = function(t){
+  tipo=t;
+  document.getElementById('btn-egreso').className='seg-btn'+(t==='egreso'?' active egreso':'');
+  document.getElementById('btn-ingreso').className='seg-btn'+(t==='ingreso'?' active ingreso':'');
+}
+
+window.guardar = async function(){
+  const monto=parseFloat(document.getElementById('inp-monto').value);
+  const banco=document.getElementById('sel-banco').value;
+  const desc=document.getElementById('inp-desc').value.trim()||banco;
+  if(!monto||monto<=0){document.getElementById('inp-monto').focus();return;}
+  const btn = document.querySelector('.save-btn');
+  btn.disabled = true;
+  try {
+    await addDoc(collection(db,'movimientos'),{
+      tipo, banco, desc, monto,
+      fecha: today.toISOString().split('T')[0],
+      creadoEn: Date.now()
+    });
+    document.getElementById('inp-monto').value='';
+    document.getElementById('inp-desc').value='';
+    showToast('✓ Guardado en la nube');
+  } catch(e) {
+    showToast('❌ Error al guardar');
+  }
+  btn.disabled = false;
+}
+
+window.eliminar = async function(id){
+  try {
+    await deleteDoc(doc(db,'movimientos',id));
+  } catch(e) {
+    showToast('❌ Error al eliminar');
+  }
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function renderHist(){
+  const el=document.getElementById('hist-list');
+  if(!movimientos.length){el.innerHTML='<div class="empty-hist">Sin movimientos aún</div>';return;}
+  el.innerHTML=movimientos.slice(0,10).map(m=>{
+    const logoTxt=m.banco==='Santander'
+      ?'<svg width="22" height="22" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#cc0000"/><text x="50" y="65" text-anchor="middle" fill="white" font-size="50" font-weight="bold">S</text></svg>'
+      :'<span style="color:#c41230;font-style:italic;font-weight:700;font-size:11px">invex</span>';
+    const dateStr=new Date(m.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
+    return`<div class="hist-item">
+      <div class="hist-logo">${logoTxt}</div>
+      <div class="hist-info">
+        <div class="hist-bank">${m.banco}</div>
+        <div class="hist-desc">${m.desc}</div>
+        <div class="hist-type ${m.tipo}">${m.tipo.charAt(0).toUpperCase()+m.tipo.slice(1)}</div>
+      </div>
+      <div class="hist-right">
+        <div class="hist-amount ${m.tipo}">${m.tipo==='egreso'?'':'+'}${fmtMoney(m.monto)}</div>
+        <div class="hist-date">${dateStr}</div>
+      </div>
+      <button class="del-btn" onclick="eliminar('${m.id}')">×</button>
+    </div>`;
+  }).join('');
+}
+
+// Escuchar cambios en tiempo real desde Firestore
+const q = query(collection(db,'movimientos'), orderBy('creadoEn','desc'));
+onSnapshot(q, (snapshot) => {
+  movimientos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  updateTotales();
+  renderHist();
+});
+
+initCortes();
+</script>
+</body>
+</html>
