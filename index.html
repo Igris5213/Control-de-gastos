@@ -910,6 +910,8 @@ function updateCards(){
 }
 
 // ── Movimientos ──────────────────────────────────
+function fmt(n){ return '$'+Number(n).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
 function fmtDateShort(fecha,creadoEn){
   if(creadoEn){ const d=new Date(creadoEn); return d.toLocaleDateString('es-MX',{day:'numeric',month:'short'})+' · '+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
   return new Date(fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'});
