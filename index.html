@@ -618,19 +618,8 @@ async function iniciarApp(){
   // Saludo
   document.getElementById('main-greeting').textContent = `Hola, ${perfil.nombre} 👋`;
 
-  // Construir carrusel
+  // Construir carrusel y luego escuchar movimientos
   buildCarrusel();
-
-  // Escuchar movimientos
-  const q = query(collection(db,'movimientos'), orderBy('creadoEn','desc'));
-  onSnapshot(q, snap=>{
-    movimientos = snap.docs.map(d=>({id:d.id,...d.data()}));
-    updateCards();
-    renderMovimientos();
-
-  });
-  // Pequeño delay para asegurar que el carrusel esté construido antes del primer render
-  setTimeout(()=>{ updateCards(); renderMovimientos(); }, 300);
 }
 
 // ── Carrusel ─────────────────────────────────────
@@ -679,9 +668,14 @@ function buildCarrusel(){
   setupSwipe();
   setTimeout(()=>{
     goTo(0,false);
-    renderMovimientos();
-    updateCards();
-  }, 100);
+    // Iniciar listener de Firebase DESPUÉS de que el carrusel esté listo
+    const q = query(collection(db,'movimientos'), orderBy('creadoEn','desc'));
+    onSnapshot(q, snap=>{
+      movimientos = snap.docs.map(d=>({id:d.id,...d.data()}));
+      updateCards();
+      renderMovimientos();
+    });
+  }, 150);
 }
 
 function setupSwipe(){
@@ -841,15 +835,17 @@ window.guardar = async function(){
   btn.disabled=true;
   try{
     const t=perfil.tarjetas[current];
+    if(!t && !editingId){ showToast('❌ Selecciona una tarjeta'); btn.disabled=false; return; }
     if(editingId){
       await updateDoc(doc(db,'movimientos',editingId),{monto});
       showToast('✓ Movimiento actualizado');
     } else {
       const now=new Date();
-      await addDoc(collection(db,'movimientos'),{
+      const datos={
         tipo:'egreso', tarjetaId:t.id, banco:t.nombre, monto,
         fecha:now.toISOString().split('T')[0], creadoEn:now.getTime()
-      });
+      };
+      await addDoc(collection(db,'movimientos'), datos);
       showToast('✓ Guardado en la nube');
     }
     document.getElementById('modal-overlay').classList.remove('open');
