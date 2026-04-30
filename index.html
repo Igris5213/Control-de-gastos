@@ -442,6 +442,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- ══ MODAL EDITAR TARJETA ══ -->
+<div class="modal-overlay" id="edit-tarjeta-overlay" onclick="closeEditTarjeta(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar tarjeta</div>
+    <div class="field-wrap">
+      <div class="field-label">Banco</div>
+      <button onclick="abrirPopupBancoEdit()" class="banco-selector-btn" id="banco-edit-tarjeta-btn">
+        <span id="banco-edit-tarjeta-txt">Seleccionar banco...</span>
+        <span style="color:#aaa;font-size:12px">▾</span>
+      </button>
+    </div>
+    <div class="field-wrap">
+      <div class="field-label">Fecha de corte</div>
+      <button onclick="abrirPopupCorteEdit()" class="banco-selector-btn" id="corte-edit-tarjeta-btn">
+        <span id="corte-edit-tarjeta-txt">Seleccionar día...</span>
+        <span style="color:#aaa;font-size:12px">▾</span>
+      </button>
+    </div>
+    <div class="field-wrap">
+      <div class="field-label">Límite de gasto</div>
+      <div class="amount-wrap">
+        <span class="amount-prefix">$</span>
+        <input class="amount-inp" id="limite-edit-tarjeta" type="number" placeholder="0.00" min="0" step="100"/>
+      </div>
+    </div>
+    <button class="modal-save" onclick="guardarEdicionTarjeta()">Guardar cambios</button>
+  </div>
+</div>
+
 <!-- ══ MODAL ELIMINAR ══ -->
 <div class="modal-overlay" id="confirm-overlay" onclick="closeConfirm(event)">
   <div class="modal">
@@ -574,7 +604,11 @@ window.elegirBanco = function(nombre){
   if(chk){ chk.classList.add('checked'); chk.textContent='✓'; chk.parentElement.classList.add('active'); }
   document.getElementById('banco-popup-overlay').classList.remove('open');
 
-  if(window._bancoEditMode){
+  if(window._editMode === 'tarjeta'){
+    selectedBancoEdit = nombre;
+    const btn = document.getElementById('banco-edit-tarjeta-btn');
+    if(btn){ btn.classList.add('selected'); document.getElementById('banco-edit-tarjeta-txt').textContent = nombre; }
+  } else if(window._bancoEditMode){
     window._bancoEditMode = false;
     selectedBancoEdit = nombre;
     const btn = document.getElementById('banco-edit-btn');
@@ -603,7 +637,11 @@ window.elegirCorte = function(dia){
   if(chk){ chk.classList.add('checked'); chk.textContent='✓'; chk.parentElement.classList.add('active'); }
   document.getElementById('corte-popup-overlay').classList.remove('open');
 
-  if(window._corteEditMode){
+  if(window._editMode === 'tarjeta'){
+    selectedCorteEdit = dia;
+    const btn = document.getElementById('corte-edit-tarjeta-btn');
+    if(btn){ btn.classList.add('selected'); document.getElementById('corte-edit-tarjeta-txt').textContent = dia; }
+  } else if(window._corteEditMode){
     window._corteEditMode = false;
     selectedCorteEdit = dia;
     const btn = document.getElementById('corte-edit-btn');
@@ -1138,7 +1176,10 @@ window.renderPerfiles = function(){
               <div style="font-size:14px;font-weight:600;color:#111">${t.nombre}</div>
               <div style="font-size:11px;color:#888">Corte día ${t.corte} · Límite $${t.limite.toLocaleString('es-MX')}</div>
             </div>
-            ${modoEdicion ? `<button onclick="eliminarTarjetaPerfil('${t.id}')" style="background:#fee2e2;border:none;border-radius:8px;padding:6px 10px;color:#ef4444;font-size:13px;cursor:pointer">🗑</button>` : ''}
+            ${modoEdicion ? `
+              <button onclick="abrirEditarTarjeta('${t.id}')" style="background:#ede9fe;border:none;border-radius:8px;padding:6px 10px;color:#7c3aed;font-size:13px;cursor:pointer;margin-right:4px">✏️</button>
+              <button onclick="eliminarTarjetaPerfil('${t.id}')" style="background:#fee2e2;border:none;border-radius:8px;padding:6px 10px;color:#ef4444;font-size:13px;cursor:pointer">🗑</button>
+            ` : ''}
           </div>`).join('')}
       </div>
 
@@ -1167,6 +1208,56 @@ window.renderPerfiles = function(){
         🗑 Eliminar perfil
       </button>
     </div>`;
+}
+
+let editandoTarjetaId = null;
+
+window.abrirEditarTarjeta = function(id){
+  const t = perfil.tarjetas.find(x=>x.id===id);
+  if(!t) return;
+  editandoTarjetaId = id;
+  // Prellenar datos actuales
+  selectedBancoEdit = t.nombre;
+  selectedCorteEdit = t.corte;
+  const bancoBtn = document.getElementById('banco-edit-tarjeta-btn');
+  const corteBtn = document.getElementById('corte-edit-tarjeta-btn');
+  if(bancoBtn){ bancoBtn.classList.add('selected'); document.getElementById('banco-edit-tarjeta-txt').textContent = t.nombre; }
+  if(corteBtn){ corteBtn.classList.add('selected'); document.getElementById('corte-edit-tarjeta-txt').textContent = t.corte; }
+  document.getElementById('limite-edit-tarjeta').value = t.limite;
+  // Indicar que los popups van a este modal
+  window._editMode = 'tarjeta';
+  document.getElementById('edit-tarjeta-overlay').classList.add('open');
+}
+
+window.closeEditTarjeta = function(e){
+  if(!e || e.target === document.getElementById('edit-tarjeta-overlay')){
+    document.getElementById('edit-tarjeta-overlay').classList.remove('open');
+    editandoTarjetaId = null;
+    window._editMode = null;
+  }
+}
+
+window.guardarEdicionTarjeta = async function(){
+  if(!editandoTarjetaId) return;
+  const nombre = selectedBancoEdit;
+  const corte  = selectedCorteEdit;
+  const limite = parseFloat(document.getElementById('limite-edit-tarjeta').value);
+  if(!nombre){ showToast('Selecciona un banco'); return; }
+  if(!corte){  showToast('Selecciona fecha de corte'); return; }
+  if(!limite || limite <= 0){ showToast('Ingresa un límite válido'); return; }
+
+  perfil.tarjetas = perfil.tarjetas.map(t=>
+    t.id === editandoTarjetaId ? {...t, nombre, corte, limite} : t
+  );
+  try{
+    await setDoc(doc(db,'perfil','usuario'), perfil);
+    buildCarrusel();
+    showToast('✓ Tarjeta actualizada');
+    document.getElementById('edit-tarjeta-overlay').classList.remove('open');
+    editandoTarjetaId = null;
+    window._editMode = null;
+    renderPerfiles();
+  } catch(e){ showToast('❌ Error al guardar'); }
 }
 
 window.toggleEdicion = function(){
