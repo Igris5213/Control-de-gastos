@@ -1358,6 +1358,8 @@ window.guardarExt = async function(){
 window.irMovimientos = function(){
   // Reset selección de banco
   document.getElementById('movimientos-full').innerHTML = '';
+  const btnBusq = document.getElementById('btn-nueva-busqueda');
+  if(btnBusq) btnBusq.style.display = 'none';
   document.getElementById('paso-apodo').style.display = 'none';
   document.getElementById('recuadro-movimientos').style.display = 'none';
   document.getElementById('banco-seleccionado-txt').textContent = 'Seleccionar banco';
@@ -1413,6 +1415,8 @@ function renderMovimientosFull(tarjetaId){
   const rec = document.getElementById('recuadro-movimientos');
   if(!el) return;
   if(rec) rec.style.display = 'block';
+  const btnBusq = document.getElementById('btn-nueva-busqueda');
+  if(btnBusq){ btnBusq.style.display='flex'; }
   const data = movimientos.filter(m=>m.tarjetaId===tarjetaId).sort((a,b)=>b.creadoEn-a.creadoEn);
   if(!data.length){
     el.innerHTML = '<div class="empty-mov">Sin movimientos para esta tarjeta</div>';
@@ -1475,6 +1479,8 @@ window.seleccionarBancoMov = function(nombre){
   document.getElementById('dd-tarjetas').style.display = 'none';
   document.getElementById('recuadro-movimientos').style.display = 'none';
   document.getElementById('movimientos-full').innerHTML = '';
+  const btnBusq = document.getElementById('btn-nueva-busqueda');
+  if(btnBusq) btnBusq.style.display = 'none';
   // Mostrar selector de tarjeta
   const tarjetas = perfil.tarjetas.filter(t=>t.nombre===nombre);
   const pasoApodo = document.getElementById('paso-apodo');
@@ -1503,6 +1509,25 @@ window.seleccionarApodoMov = function(tarjetaId, apodo, corte){
 
 
 
+
+window.nuevaBusqueda = function(){
+  // Resetear todo a estado inicial
+  document.getElementById('banco-seleccionado-txt').textContent = 'Seleccionar banco';
+  document.getElementById('dd-bancos').style.display = 'none';
+  document.getElementById('dd-bancos-icon').style.transform = '';
+  document.getElementById('paso-apodo').style.display = 'none';
+  document.getElementById('tarjeta-seleccionada-txt').textContent = 'Seleccionar tarjeta';
+  document.getElementById('dd-tarjetas').style.display = 'none';
+  document.getElementById('dd-tarjetas-icon').style.transform = '';
+  document.getElementById('recuadro-movimientos').style.display = 'none';
+  document.getElementById('movimientos-full').innerHTML = '';
+  const btnBusq = document.getElementById('btn-nueva-busqueda');
+  if(btnBusq) btnBusq.style.display = 'none';
+  // Limpiar selección en listas
+  document.querySelectorAll('#lista-bancos-btns div').forEach(b=>{
+    b.style.background='#fff'; b.style.color='#111'; b.style.fontWeight='500';
+  });
+}
 
 window.setNavActive = function(id){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -1780,6 +1805,11 @@ window.confirmarEliminarPerfil = async function(){
         <div id="lista-apodos-btns" style="display:flex;flex-direction:column"></div>
       </div>
     </div>
+
+    <!-- Botón nueva búsqueda -->
+    <button id="btn-nueva-busqueda" onclick="nuevaBusqueda()" style="display:none;width:100%;margin:0 0 12px;padding:14px;border-radius:14px;background:linear-gradient(135deg,#065f46,#059669);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;align-items:center;justify-content:center;gap:8px">
+      ↩ Nueva búsqueda
+    </button>
 
     <!-- Movimientos -->
     <div class="section-card" id="recuadro-movimientos" style="display:none;margin:0 0 12px">
