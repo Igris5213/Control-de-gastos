@@ -477,7 +477,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <input class="amount-inp" id="limite-edit-tarjeta" type="number" placeholder="0.00" min="0" step="100"/>
       </div>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
     <button class="modal-save" onclick="guardarEdicionTarjeta()">Guardar cambios</button>
+    <button onclick="document.getElementById('edit-tarjeta-overlay').classList.remove('open')" style="padding:14px;border-radius:12px;border:none;background:#ef4444;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
+  </div>
   </div>
 </div>
 
