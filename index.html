@@ -1121,6 +1121,11 @@ window.guardarExt = async function(){
 
 
 window.irMovimientos = function(){
+  // Reset selección de banco
+  document.getElementById('banco-selected').textContent = 'Seleccionar banco';
+  document.getElementById('lista-bancos').style.display = 'none';
+  document.getElementById('movimientos-full').innerHTML = '';
+
   // ocultar app principal
   document.getElementById('main-app').style.display = 'none';
 
@@ -1135,7 +1140,6 @@ window.irMovimientos = function(){
   scr.style.display='flex';
 
   cargarBancosFiltro();
-  
 }
 
 window.irDetalle = function(){
@@ -1231,11 +1235,17 @@ window.seleccionarBanco = function(nombre){
   `).join('');
 }
 
+
+window.setNavActive = function(id){
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+}
 </script>
 
 <!-- ══ NAVBAR INFERIOR ══ -->
 <div class="bottom-nav">
-  <button class="nav-item active" onclick="irDetalle()">
+  <button class="nav-item active" id="nav-detalle" onclick="setNavActive('nav-detalle'); irDetalle()">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <rect x="3" y="10" width="4" height="11" rx="1"/>
       <rect x="10" y="6" width="4" height="15" rx="1"/>
@@ -1244,7 +1254,7 @@ window.seleccionarBanco = function(nombre){
     <span>Detalle</span>
   </button>
 
-  <button class="nav-item" onclick="irMovimientos()">
+  <button class="nav-item" id="nav-movimientos" onclick="setNavActive('nav-movimientos'); irMovimientos()">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <line x1="8" y1="6" x2="21" y2="6"/>
       <line x1="8" y1="12" x2="21" y2="12"/>
@@ -1256,7 +1266,7 @@ window.seleccionarBanco = function(nombre){
     <span>Movimientos</span>
   </button>
 
-  <button class="nav-item" onclick="cambiarTab(event,'perfiles')">
+  <button class="nav-item" id="nav-perfiles" onclick="setNavActive('nav-perfiles'); cambiarTab(event,'perfiles')">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <circle cx="12" cy="8" r="4"/>
       <path d="M4 20c2-4 14-4 16 0"/>
@@ -1264,7 +1274,7 @@ window.seleccionarBanco = function(nombre){
     <span>Perfiles</span>
   </button>
 
-  <button class="nav-item" onclick="cambiarTab(event,'config')">
+  <button class="nav-item" id="nav-config" onclick="setNavActive('nav-config'); cambiarTab(event,'config')">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="3"/>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06
