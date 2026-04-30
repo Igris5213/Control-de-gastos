@@ -142,7 +142,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* MODALES */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s}
 .modal-overlay.open{opacity:1;pointer-events:all}
-.modal{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:430px;transform:translateY(100%);transition:transform 0.3s}
+.modal{background:#fff;border-radius:24px;padding:24px 20px 40px;width:100%;max-width:430px;transform:translateY(100%);transition:transform 0.3s}
 .modal-overlay.open .modal{transform:translateY(0)}
 .modal-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 20px}
 .modal-title{font-size:18px;font-weight:700;color:#111;margin-bottom:20px}
@@ -159,6 +159,64 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 22px;border-radius:20px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200;white-space:nowrap}
 .toast.show{opacity:1}
+
+/* ── NAVBAR INFERIOR ── */
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:70px;
+  background:#fff;
+  border-top:1px solid #e5e7eb;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:500;
+}
+
+.nav-item{
+  background:none;
+  border:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  font-size:12px;
+  color:#888;
+  cursor:pointer;
+  font-family:inherit;
+}
+
+.nav-item div{
+  font-size:20px;
+  margin-bottom:4px;
+}
+
+.nav-item.active{
+  color:#7c3aed;
+  font-weight:600;
+}
+
+.main-app{
+  padding-bottom:80px;
+}
+
+
+.nav-item svg{margin-bottom:4px;}
+
+/* FIX MODAL VS NAVBAR */
+.modal{
+  margin-bottom:80px;
+}
+
+.modal-overlay{
+  z-index:1000;
+}
+
+
+.save-btn-main + .save-btn-main{
+  margin-top:10px;
+}
 </style>
 </head>
 <body>
@@ -388,7 +446,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOut(event)">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-title">Nuevo gasto</div>
+    <div class="modal-title" id="modal-title"></div>
     <div class="field-wrap">
       <div class="field-label">Monto</div>
       <div class="amount-wrap">
@@ -420,12 +478,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <!-- Nuevo gasto -->
     <div class="section-card">
-      <div class="section-card-title">Nuevo gasto</div>
+      
       <div class="save-wrap">
         <button class="save-btn-main" onclick="openModal()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-          Registrar gasto
+          Nuevo
         </button>
+        <button class="save-btn-main" onclick="openModalExt()">Extemporáneo</button>
       </div>
     </div>
 
@@ -854,7 +913,7 @@ function renderMovimientos(){
 // ── Modal gasto ──────────────────────────────────
 window.openModal = function(){
   editingId=null;
-  document.getElementById('modal-title').textContent='Nuevo gasto';
+  document.getElementById('modal-title').textContent='';
   document.getElementById('modal-save-btn').textContent='Guardar';
   document.getElementById('inp-monto').value='';
   document.getElementById('modal-overlay').classList.add('open');
@@ -865,7 +924,7 @@ window.openEdit = function(id){
   const m=movimientos.find(x=>x.id===id);
   if(!m) return;
   editingId=id;
-  document.getElementById('modal-title').textContent='Editar gasto';
+  document.getElementById('modal-title').textContent='';
   document.getElementById('modal-save-btn').textContent='Guardar';
   document.getElementById('inp-monto').value=m.monto;
   document.getElementById('modal-overlay').classList.add('open');
@@ -996,6 +1055,340 @@ async function init(){
 }
 
 init();
+
+// ── NAVBAR FUNCIONAL ──
+window.cambiarTab = function(e, tab){
+  document.querySelectorAll('.nav-item').forEach(btn=>{
+    btn.classList.remove('active');
+  });
+  e.currentTarget.classList.add('active');
+  const t=document.getElementById('toast');
+  if(t){
+    t.textContent='Sección: '+tab;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2000);
+  }
+}
+
+
+// ── EXTEMPORANEO (usa fecha seleccionada) ──
+window.guardarExt = async function(){
+  const monto = parseFloat(document.getElementById('inp-monto-ext').value);
+  const fecha = document.getElementById('inp-fecha-ext').value;
+
+  if(!monto || monto <= 0){
+    showToast('Ingresa monto');
+    return;
+  }
+  if(!fecha){
+    showToast('Selecciona fecha');
+    return;
+  }
+
+  const t = perfil && perfil.tarjetas ? perfil.tarjetas[current] : null;
+  if(!t){
+    showToast('Selecciona una tarjeta');
+    return;
+  }
+
+  const datos = {
+    tipo:'egreso',
+    tarjetaId: t.id,
+    banco: t.nombre,
+    monto: monto,
+    fecha: fecha, // usa la fecha del calendario
+    creadoEn: new Date().getTime()
+  };
+
+  try{
+    await addDoc(collection(db,'movimientos'), datos);
+    document.getElementById('modal-ext-overlay').classList.remove('open');
+    // limpiar
+    document.getElementById('inp-monto-ext').value = '';
+    document.getElementById('inp-fecha-ext').value = '';
+    showToast('✓ Guardado');
+  }catch(e){
+    console.error(e);
+    showToast('❌ Error');
+  }
+}
+
+
+window.irMovimientos = function(){
+  // ocultar app principal
+  document.getElementById('main-app').style.display = 'none';
+
+  // mostrar pantalla movimientos
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.add('hidden');
+    s.style.display='none';
+  });
+
+  const scr = document.getElementById('screen-movimientos');
+  scr.classList.remove('hidden');
+  scr.style.display='flex';
+
+  cargarBancosFiltro();
+  
+}
+
+window.irDetalle = function(){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.add('hidden');
+    s.style.display='none';
+  });
+
+  const main = document.getElementById('main-app');
+  main.style.display='flex';
+  main.classList.add('visible');
+}
+
+function cargarBancosFiltro(){
+  const sel = document.getElementById('filtro-banco');
+  if(!sel || !perfil) return;
+
+  sel.innerHTML = '<option value="all">Todos</option>' +
+    perfil.tarjetas.map(t=>`<option value="${t.id}">${t.nombre}</option>`).join('');
+}
+
+window.filtrarMovimientos = function(){
+  const val = document.getElementById('filtro-banco').value;
+  renderMovimientosFull(val);
+}
+
+function renderMovimientosFull(filtro='all'){
+  const el = document.getElementById('movimientos-full');
+  if(!el) return;
+
+  let data = movimientos;
+  if(filtro!=='all') data = data.filter(m=>m.tarjetaId===filtro);
+
+  if(!data.length){
+    el.innerHTML = '<div class="empty-mov">Sin movimientos</div>';
+    return;
+  }
+
+  el.innerHTML = data.map(m=>`
+    <div class="mov-item">
+      <div class="mov-info">
+        <div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div>
+      </div>
+      <div class="mov-amount">-${fmt(m.monto)}</div>
+    </div>
+  `).join('');
+}
+
+
+window.toggleBanco = function(){
+  const cont = document.getElementById('lista-bancos');
+  if(!cont) return;
+
+  if(cont.style.display === 'block'){
+    cont.style.display = 'none';
+    return;
+  }
+
+  if(!perfil || !perfil.tarjetas) return;
+
+  let htmlStr = '';
+  perfil.tarjetas.forEach(function(t){
+    htmlStr += '<div style="padding:12px;border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="seleccionarBanco(\''+t.nombre+'\')">'+t.nombre+'</div>';
+  });
+
+  cont.innerHTML = htmlStr;
+  cont.style.display = 'block';
+}
+
+window.seleccionarBanco = function(nombre){
+  document.getElementById('banco-selected').textContent = nombre;
+  document.getElementById('lista-bancos').style.display = 'none';
+
+  const tarjeta = perfil.tarjetas.find(t=>t.nombre===nombre);
+  if(!tarjeta) return;
+
+  const data = movimientos.filter(m=>m.tarjetaId===tarjeta.id);
+
+  const el = document.getElementById('movimientos-full');
+
+  if(!data.length){
+    el.innerHTML = '<div class="empty-mov">Sin movimientos</div>';
+    return;
+  }
+
+  el.innerHTML = data.map(m=>`
+    <div class="mov-item">
+      <div class="mov-info">
+        <div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div>
+      </div>
+      <div class="mov-amount">-$${m.monto}</div>
+    </div>
+  `).join('');
+}
+
 </script>
+
+<!-- ══ NAVBAR INFERIOR ══ -->
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="irDetalle()">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <rect x="3" y="10" width="4" height="11" rx="1"/>
+      <rect x="10" y="6" width="4" height="15" rx="1"/>
+      <rect x="17" y="3" width="4" height="18" rx="1"/>
+    </svg>
+    <span>Detalle</span>
+  </button>
+
+  <button class="nav-item" onclick="irMovimientos()">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <line x1="8" y1="6" x2="21" y2="6"/>
+      <line x1="8" y1="12" x2="21" y2="12"/>
+      <line x1="8" y1="18" x2="21" y2="18"/>
+      <circle cx="3" cy="6" r="1"/>
+      <circle cx="3" cy="12" r="1"/>
+      <circle cx="3" cy="18" r="1"/>
+    </svg>
+    <span>Movimientos</span>
+  </button>
+
+  <button class="nav-item" onclick="cambiarTab(event,'perfiles')">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c2-4 14-4 16 0"/>
+    </svg>
+    <span>Perfiles</span>
+  </button>
+
+  <button class="nav-item" onclick="cambiarTab(event,'config')">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06
+      a2 2 0 1 1-2.83 2.83l-.06-.06
+      a1.65 1.65 0 0 0-1.82-.33
+      1.65 1.65 0 0 0-1 1.51V21
+      a2 2 0 1 1-4 0v-.09
+      a1.65 1.65 0 0 0-1-1.51
+      1.65 1.65 0 0 0-1.82.33l-.06.06
+      a2 2 0 1 1-2.83-2.83l.06-.06
+      a1.65 1.65 0 0 0 .33-1.82
+      1.65 1.65 0 0 0-1.51-1H3
+      a2 2 0 1 1 0-4h.09
+      a1.65 1.65 0 0 0 1.51-1
+      1.65 1.65 0 0 0-.33-1.82l-.06-.06
+      a2 2 0 1 1 2.83-2.83l.06.06
+      a1.65 1.65 0 0 0 1.82.33h0
+      a1.65 1.65 0 0 0 1-1.51V3
+      a2 2 0 1 1 4 0v.09
+      a1.65 1.65 0 0 0 1 1.51
+      1.65 1.65 0 0 0 1.82-.33l.06-.06
+      a2 2 0 1 1 2.83 2.83l-.06.06
+      a1.65 1.65 0 0 0-.33 1.82v0
+      a1.65 1.65 0 0 0 1.51 1H21
+      a2 2 0 1 1 0 4h-.09
+      a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <span>Configuración</span>
+  </button>
+</div>
+
+
+<!-- ══ MODAL EXTEMPORANEO ══ -->
+<div class="modal-overlay" id="modal-ext-overlay" onclick="closeModalExtOut(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="field-wrap">
+      <div class="field-label">Monto</div>
+      <div class="amount-wrap">
+        <span class="amount-prefix">$</span>
+        <input class="amount-inp" id="inp-monto-ext" type="number" placeholder="0.00" min="0" step="0.01" />
+      </div>
+    </div>
+    <div class="field-wrap">
+      <div class="field-label">Fecha</div>
+      <input class="inp" id="inp-fecha-ext" type="date" />
+    </div>
+    <button class="modal-save" onclick="guardarExt()">Guardar</button>
+  </div>
+</div>
+
+
+<script>
+window.openModalExt = function(){
+  const el = document.getElementById('modal-ext-overlay');
+  if(el) el.classList.add('open');
+}
+window.closeModalExtOut = function(e){
+  if(e.target===document.getElementById('modal-ext-overlay')){
+    document.getElementById('modal-ext-overlay').classList.remove('open');
+  }
+}
+
+// ── EXTEMPORANEO (usa fecha seleccionada) ──
+window.guardarExt = async function(){
+  const monto = parseFloat(document.getElementById('inp-monto-ext').value);
+  const fecha = document.getElementById('inp-fecha-ext').value;
+
+  if(!monto || monto <= 0){
+    showToast('Ingresa monto');
+    return;
+  }
+  if(!fecha){
+    showToast('Selecciona fecha');
+    return;
+  }
+
+  const t = perfil && perfil.tarjetas ? perfil.tarjetas[current] : null;
+  if(!t){
+    showToast('Selecciona una tarjeta');
+    return;
+  }
+
+  const datos = {
+    tipo:'egreso',
+    tarjetaId: t.id,
+    banco: t.nombre,
+    monto: monto,
+    fecha: fecha, // usa la fecha del calendario
+    creadoEn: new Date().getTime()
+  };
+
+  try{
+    await addDoc(collection(db,'movimientos'), datos);
+    document.getElementById('modal-ext-overlay').classList.remove('open');
+    // limpiar
+    document.getElementById('inp-monto-ext').value = '';
+    document.getElementById('inp-fecha-ext').value = '';
+    showToast('✓ Guardado');
+  }catch(e){
+    console.error(e);
+    showToast('❌ Error');
+  }
+}
+
+</script>
+
+
+<!-- PANTALLA MOVIMIENTOS -->
+
+<div class="screen hidden" id="screen-movimientos">
+  <div class="ob-card">
+    <div class="ob-title">Movimientos</div>
+
+    <div onclick="toggleBanco()" 
+         style="margin-top:16px;padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;
+                display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+      <span id="banco-selected">Seleccionar banco</span>
+      <span style="font-size:12px">▼</span>
+    </div>
+
+    <div id="lista-bancos" style="display:none;margin-top:6px;border:1px solid #e5e7eb;border-radius:12px;background:#fff"></div>
+
+    
+<div id="movimientos-full" style="margin-top:12px"></div>
+<button class="ob-back" onclick="irDetalle()">← Volver</button>
+
+  </div>
+</div>
+
+
 </body>
 </html>
