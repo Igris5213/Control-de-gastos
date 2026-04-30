@@ -1058,15 +1058,63 @@ init();
 
 // ── NAVBAR FUNCIONAL ──
 window.cambiarTab = function(e, tab){
-  document.querySelectorAll('.nav-item').forEach(btn=>{
-    btn.classList.remove('active');
-  });
-  e.currentTarget.classList.add('active');
-  const t=document.getElementById('toast');
-  if(t){
-    t.textContent='Sección: '+tab;
-    t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),2000);
+  if(tab === 'perfiles'){
+    setNavActive('nav-perfiles');
+    mostrarPantallaPerfiles();
+  } else if(tab === 'config'){
+    setNavActive('nav-config');
+    showToast('⚙️ Configuración próximamente');
+  }
+}
+
+window.mostrarPantallaPerfiles = function(){
+  document.getElementById('main-app').style.display = 'none';
+  document.querySelectorAll('.screen').forEach(s=>{ s.classList.add('hidden'); s.style.display='none'; });
+  const scr = document.getElementById('screen-perfiles');
+  scr.classList.remove('hidden');
+  scr.style.display = 'flex';
+  renderPerfiles();
+}
+
+window.renderPerfiles = async function(){
+  const lista = document.getElementById('perfiles-lista');
+  lista.innerHTML = '<div style="text-align:center;color:#bbb;padding:20px">Cargando...</div>';
+  try {
+    const { getDocs, collection: col } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    // El perfil actual ya lo tenemos en memoria
+    if(!perfil){
+      lista.innerHTML = '<div style="text-align:center;color:#bbb;padding:20px">Sin perfiles guardados</div>';
+      return;
+    }
+    const colores = ['#1a2e5a','#5b21b6','#065f46','#92400e','#7f1d1d','#1e3a5f'];
+    lista.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:18px;box-shadow:0 1px 6px rgba(0,0,0,0.08);margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#4f35b8,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:700;flex-shrink:0">
+            ${perfil.nombre.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#111">${perfil.nombre}</div>
+
+          </div>
+          <div style="margin-left:auto;background:#eef6ee;color:#2d7a2d;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px">Activo</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${perfil.tarjetas.map((t,i)=>`
+            <div style="background:#f4f5f9;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+              <div style="width:10px;height:10px;border-radius:50%;background:${colores[i%colores.length]};flex-shrink:0"></div>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:600;color:#111">${t.nombre}</div>
+                <div style="font-size:11px;color:#888">Corte día ${t.corte} · Límite $${t.limite.toLocaleString('es-MX')}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+        <button onclick="abrirSettings()" style="margin-top:14px;width:100%;padding:10px;border-radius:10px;border:1.5px solid #ef4444;background:none;color:#ef4444;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          🗑 Eliminar perfil
+        </button>
+      </div>`;
+  } catch(err){
+    lista.innerHTML = '<div style="color:#ef4444;text-align:center;padding:20px">Error cargando perfiles</div>';
   }
 }
 
@@ -1388,6 +1436,17 @@ window.guardarExt = async function(){
 
 </script>
 
+
+<!-- PANTALLA PERFILES -->
+<div class="screen hidden" id="screen-perfiles">
+  <div style="width:100%;max-width:390px;padding:0 4px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:20px;font-weight:800;color:#111">Perfiles</div>
+      <button onclick="setNavActive('nav-detalle'); irDetalle()" style="background:none;border:none;color:#7c3aed;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">← Volver</button>
+    </div>
+    <div id="perfiles-lista"></div>
+  </div>
+</div>
 
 <!-- PANTALLA MOVIMIENTOS -->
 
