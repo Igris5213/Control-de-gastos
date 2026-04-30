@@ -779,24 +779,27 @@ function getPeriodo(corte){
 }
 
 function updateCards(){
+  if(!perfil || !perfil.tarjetas) return;
   perfil.tarjetas.forEach((t,i)=>{
     const {inicio,fin,dias} = getPeriodo(t.corte);
     const usado = movimientos.filter(m=>m.tarjetaId===t.id&&new Date(m.fecha+'T12:00:00')>=inicio&&new Date(m.fecha+'T12:00:00')<=fin).reduce((s,m)=>s+m.monto,0);
     const disp = Math.max(0,t.limite-usado);
     const pct = Math.min(100,Math.round(usado/t.limite*100));
     const diasTxt = dias===0?'Hoy es día de corte':`Faltan ${dias} día${dias!==1?'s':''} para corte`;
-    if(document.getElementById(`usado-${i}`)){
-      document.getElementById(`usado-${i}`).textContent=fmt(usado);
-      document.getElementById(`disp-${i}`).textContent=fmt(disp);
-      document.getElementById(`bar-${i}`).style.width=pct+'%';
-      document.getElementById(`pct-${i}`).textContent=`${pct}% utilizado`;
-      document.getElementById(`dias-${i}`).textContent=diasTxt;
-      const xdia = usado / 30;
-      if(document.getElementById(`xdia-${i}`)) document.getElementById(`xdia-${i}`).textContent=fmt(xdia);
-      // badge solo en tarjeta activa
-      const badge=document.getElementById(`badge-${i}`);
-      if(badge) badge.style.display = i===current ? 'flex' : 'none';
-    }
+    const usadoEl=document.getElementById(`usado-${i}`);
+    const dispEl=document.getElementById(`disp-${i}`);
+    const barEl=document.getElementById(`bar-${i}`);
+    const pctEl=document.getElementById(`pct-${i}`);
+    if(usadoEl) usadoEl.textContent=fmt(usado);
+    if(dispEl) dispEl.textContent=fmt(disp);
+    if(barEl) barEl.style.width=pct+'%';
+    if(pctEl) pctEl.textContent=`${pct}% utilizado`;
+    const diasEl=document.getElementById(`dias-${i}`);
+    if(diasEl) diasEl.textContent=diasTxt;
+    const xdiaEl=document.getElementById(`xdia-${i}`);
+    if(xdiaEl) xdiaEl.textContent=fmt(usado/30);
+    const badge=document.getElementById(`badge-${i}`);
+    if(badge) badge.style.display = i===current ? 'flex' : 'none';
   });
 }
 
@@ -807,9 +810,11 @@ function fmtDateShort(fecha,creadoEn){
 }
 
 function renderMovimientos(){
-  if(!perfil) return;
+  if(!perfil || !perfil.tarjetas || !perfil.tarjetas.length) return;
   const el = document.getElementById('mov-list');
-  const t = perfil.tarjetas[current];
+  if(!el) return;
+  const idx = (current >= 0 && current < perfil.tarjetas.length) ? current : 0;
+  const t = perfil.tarjetas[idx];
   if(!t){ el.innerHTML=''; return; }
   const filtrados = movimientos.filter(m=>m.tarjetaId===t.id).slice(0,10);
 
@@ -876,13 +881,14 @@ window.guardar = async function(){
       try {
         const ref = await addDoc(collection(db,'movimientos'), datos);
         movimientos = [{id:ref.id, ...datos}, ...movimientos];
+        updateCards();
+        renderMovimientos();
         showToast('✓ Guardado en la nube');
       } catch(fireErr){
-        showToast('❌ Error Firebase: '+fireErr.code);
+        showToast('❌ Error: '+fireErr.message);
         btn.disabled=false;
         return;
       }
-      try { updateCards(); renderMovimientos(); } catch(renderErr){ console.error('Render error:',renderErr); }
     }
     document.getElementById('modal-overlay').classList.remove('open');
   } catch(e){ showToast('❌ Error: '+e.message); }
