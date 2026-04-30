@@ -765,6 +765,8 @@ function renderMovimientos(){
   const t = perfil.tarjetas[current];
   if(!t){ el.innerHTML=''; return; }
   const filtrados = movimientos.filter(m=>m.tarjetaId===t.id).slice(0,10);
+  // Mantener visibilidad actual de la lista
+  el.style.display = movVisible ? 'block' : 'none';
   if(!filtrados.length){ el.innerHTML=`<div class="empty-mov">Sin movimientos para ${t.nombre}</div>`; return; }
   el.innerHTML = filtrados.map(m=>`
     <div class="mov-item">
@@ -827,6 +829,14 @@ window.guardar = async function(){
         fecha:now.toISOString().split('T')[0], creadoEn:now.getTime()
       });
       showToast('✓ Guardado en la nube');
+      // Abrir lista si está cerrada para ver el nuevo movimiento
+      if(!movVisible){
+        movVisible = true;
+        document.getElementById('mov-list').style.display = 'block';
+        const btn = document.getElementById('ver-mas-btn');
+        btn.textContent = 'Ver menos ▴';
+        btn.classList.add('open');
+      }
     }
     document.getElementById('modal-overlay').classList.remove('open');
   } catch(e){ showToast('❌ Error al guardar'); }
