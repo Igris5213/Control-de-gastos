@@ -71,8 +71,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .corte-item.selected{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600}
 
 /* ── APP PRINCIPAL ── */
-.main-app{display:none;flex-direction:column;padding-bottom:0}
-.main-app.visible{display:block}
+.main-app{display:none;flex-direction:column}
+.main-app.visible{display:flex;flex-direction:column;min-height:100vh}
 .topbar{background:#f4f5f9;padding:16px 20px 8px;display:flex;align-items:center;justify-content:center;position:relative}
 .top-section{background:#f4f5f9}
 .topbar-title{font-size:20px;font-weight:700;color:#111;text-align:center}
@@ -82,7 +82,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cards-outer{padding:0 20px;overflow:hidden;user-select:none;-webkit-user-select:none}
 .cards-track{display:flex;gap:14px;will-change:transform;transition:transform 0.38s cubic-bezier(0.25,0.46,0.45,0.94)}
 .cards-track.dragging{transition:none}
-.bank-card{flex-shrink:0;width:100%;border-radius:20px;padding:22px;color:#fff;position:relative;cursor:grab;touch-action:pan-y}
+.bank-card{flex-shrink:0;width:calc(100vw - 40px);max-width:390px;border-radius:20px;padding:22px;color:#fff;position:relative;cursor:grab;touch-action:pan-y}
 .bank-card:active{cursor:grabbing}
 
 /* CSS tarjeta rediseñada */
@@ -116,15 +116,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dot{width:8px;height:8px;border-radius:50%;background:#ccc;transition:all 0.25s;cursor:pointer}
 .dot.active{background:#4f35b8;width:22px;border-radius:4px}
 
+/* RECUADROS */
+.section-card{background:#fff;border-radius:16px;margin:0 16px 12px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,0.07)}
+.section-card-title{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
+
 /* BOTÓN */
-.save-wrap{padding:10px 20px 6px}
-.save-btn-main{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#4f35b8,#7c3aed);color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit}
+.save-wrap{padding:0}
+.save-btn-main{width:100%;padding:16px;border-radius:12px;background:linear-gradient(135deg,#4f35b8,#7c3aed);color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit}
 .save-btn-main:active{transform:scale(0.98)}
 
 /* MOVIMIENTOS */
-.mov-section{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#f4f5f9;padding:12px 20px 24px;z-index:20;box-shadow:0 -4px 20px rgba(0,0,0,0.06)}
-.mov-title{font-size:16px;font-weight:700;color:#111}
-.mov-item{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.mov-section{padding:0 0 40px;background:#f4f5f9}
+.mov-title{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
+.mov-item{background:#f4f5f9;border-radius:10px;padding:10px 4px;margin-bottom:4px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f0f0f0}
+.mov-item:last-child{border-bottom:none;margin-bottom:0}
 .mov-icon{width:38px;height:38px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .mov-info{flex:1;min-width:0}
 .mov-date{font-size:13px;color:#555;font-weight:500}
@@ -406,21 +411,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         🗑 Perfil
       </button>
     </div>
-    <div class="cards-outer" id="cards-outer">
-      <div class="cards-track" id="cards-track"></div>
-    </div>
-    <div class="dots" id="dots"></div>
-    <div class="save-wrap">
-      <button class="save-btn-main" onclick="openModal()">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-        Nuevo gasto
-      </button>
-    </div>
-  </div>
 
-  <div class="mov-section">
-    <div class="mov-title" style="margin-bottom:10px">Últimos movimientos</div>
-    <div id="mov-list" style="max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
+    <!-- Tarjeta banco -->
+    <div style="margin:0 0 12px">
+      <div class="cards-outer" id="cards-outer">
+        <div class="cards-track" id="cards-track"></div>
+      </div>
+      <div class="dots" id="dots"></div>
+    </div>
+
+    <!-- Nuevo gasto -->
+    <div class="section-card">
+      <div class="section-card-title">Nuevo gasto</div>
+      <div class="save-wrap">
+        <button class="save-btn-main" onclick="openModal()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Registrar gasto
+        </button>
+      </div>
+    </div>
+
+    <!-- Movimientos -->
+    <div class="section-card" style="margin-bottom:32px">
+      <div class="section-card-title">Últimos movimientos</div>
+      <div id="mov-list"></div>
+    </div>
   </div>
 </div>
 
@@ -452,8 +467,13 @@ const COLORS = ['card-color-0','card-color-1','card-color-2','card-color-3','car
 
 // ── Onboarding ───────────────────────────────────
 window.showScreen = function(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.add('hidden');
+    s.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  el.classList.remove('hidden');
+  el.style.display = 'flex';
 }
 
 window.guardarPerfil = function(){
@@ -612,11 +632,17 @@ window.finalizarOnboarding = async function(){
 // ── Iniciar App ──────────────────────────────────
 async function iniciarApp(){
   // Ocultar todas las pantallas
-  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
-  document.getElementById('main-app').classList.add('visible');
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.add('hidden');
+    s.style.display='none';
+  });
+  // Mostrar app
+  const mainApp = document.getElementById('main-app');
+  mainApp.style.display = 'flex';
+  mainApp.classList.add('visible');
 
   // Saludo
-  document.getElementById('main-greeting').textContent = `Hola, ${perfil.nombre} 👋`;
+  document.getElementById('main-greeting').textContent = `${perfil.nombre} 👋`;
 
   // Construir carrusel y luego escuchar movimientos
   buildCarrusel();
@@ -666,16 +692,14 @@ function buildCarrusel(){
   });
 
   setupSwipe();
-  setTimeout(()=>{
-    goTo(0,false);
-    // Iniciar listener de Firebase DESPUÉS de que el carrusel esté listo
-    const q = query(collection(db,'movimientos'), orderBy('creadoEn','desc'));
-    onSnapshot(q, snap=>{
-      movimientos = snap.docs.map(d=>({id:d.id,...d.data()}));
-      updateCards();
-      renderMovimientos();
-    });
-  }, 150);
+  goTo(0, false);
+  // Iniciar listener de Firebase
+  const q = query(collection(db,'movimientos'), orderBy('creadoEn','desc'));
+  onSnapshot(q, snap=>{
+    movimientos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    updateCards();
+    renderMovimientos();
+  });
 }
 
 function setupSwipe(){
@@ -838,6 +862,10 @@ window.guardar = async function(){
     if(!t && !editingId){ showToast('❌ Selecciona una tarjeta'); btn.disabled=false; return; }
     if(editingId){
       await updateDoc(doc(db,'movimientos',editingId),{monto});
+      // Actualizar local
+      movimientos = movimientos.map(m=>m.id===editingId?{...m,monto}:m);
+      updateCards();
+      renderMovimientos();
       showToast('✓ Movimiento actualizado');
     } else {
       const now=new Date();
@@ -845,11 +873,19 @@ window.guardar = async function(){
         tipo:'egreso', tarjetaId:t.id, banco:t.nombre, monto,
         fecha:now.toISOString().split('T')[0], creadoEn:now.getTime()
       };
-      await addDoc(collection(db,'movimientos'), datos);
-      showToast('✓ Guardado en la nube');
+      try {
+        const ref = await addDoc(collection(db,'movimientos'), datos);
+        movimientos = [{id:ref.id, ...datos}, ...movimientos];
+        showToast('✓ Guardado en la nube');
+      } catch(fireErr){
+        showToast('❌ Error Firebase: '+fireErr.code);
+        btn.disabled=false;
+        return;
+      }
+      try { updateCards(); renderMovimientos(); } catch(renderErr){ console.error('Render error:',renderErr); }
     }
     document.getElementById('modal-overlay').classList.remove('open');
-  } catch(e){ showToast('❌ Error al guardar'); }
+  } catch(e){ showToast('❌ Error: '+e.message); }
   btn.disabled=false;
 }
 
