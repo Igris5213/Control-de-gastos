@@ -523,11 +523,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- ══ APP PRINCIPAL ══ -->
 <div class="main-app" id="main-app">
   <div class="top-section">
-    <div class="section-card" style="margin:12px 16px;display:flex;align-items:center;justify-content:space-between;padding:14px 16px">
+    <div class="section-card" style="margin:12px 16px;display:flex;align-items:center;justify-content:center;padding:14px 16px">
       <div style="font-size:18px;font-weight:700;color:#111">Control de gastos</div>
-      <button onclick="abrirSettings()" style="font-size:11px;font-weight:600;color:#ef4444;border:1.5px solid #ef4444;border-radius:20px;padding:4px 10px;background:none;cursor:pointer;font-family:inherit">
-        🗑 Perfil
-      </button>
+      
     </div>
 
     <!-- Tarjeta banco -->
@@ -1480,16 +1478,15 @@ window.setNavActive = function(id){
   if(el) el.classList.add('active');
 }
 
-// === CONFIRMAR ELIMINAR BANCO ===
 window._eliminarTarjetaPerfilOriginal = window.eliminarTarjetaPerfil;
 
 window.eliminarTarjetaPerfil = function(id){
-  window._bancoEliminarId = id;
+  window._bancoId = id;
   document.getElementById('modal-eliminar-banco').classList.add('open');
 }
 
 window.cerrarModalBanco = function(e){
-  if(!e || e.target === document.getElementById('modal-eliminar-banco')){
+  if(!e || e.target===document.getElementById('modal-eliminar-banco')){
     document.getElementById('modal-eliminar-banco').classList.remove('open');
   }
 }
@@ -1497,17 +1494,24 @@ window.cerrarModalBanco = function(e){
 window.confirmarEliminarBanco = function(){
   document.getElementById('modal-eliminar-banco').classList.remove('open');
 
-  // si es el ultimo banco, eliminar perfil
-  if(perfil && perfil.tarjetas && perfil.tarjetas.length === 1){
-    eliminarPerfil();
+  if(perfil.tarjetas.length === 1){
+    document.getElementById('modal-eliminar-perfil').classList.add('open');
     return;
   }
 
-  // eliminar solo banco
-  if(window._bancoEliminarId){
-    perfil.tarjetas = perfil.tarjetas.filter(t => t.id !== window._bancoEliminarId);
-    renderPerfiles();
+  perfil.tarjetas = perfil.tarjetas.filter(t=>t.id!==window._bancoId);
+  renderPerfiles();
+}
+
+window.cerrarModalPerfil = function(e){
+  if(!e || e.target===document.getElementById('modal-eliminar-perfil')){
+    document.getElementById('modal-eliminar-perfil').classList.remove('open');
   }
+}
+
+window.confirmarEliminarPerfil = async function(){
+  document.getElementById('modal-eliminar-perfil').classList.remove('open');
+  await eliminarPerfil();
 }
 
 </script>
@@ -1659,16 +1663,15 @@ window.guardarExt = async function(){
 }
 
 
-// === CONFIRMAR ELIMINAR BANCO ===
 window._eliminarTarjetaPerfilOriginal = window.eliminarTarjetaPerfil;
 
 window.eliminarTarjetaPerfil = function(id){
-  window._bancoEliminarId = id;
+  window._bancoId = id;
   document.getElementById('modal-eliminar-banco').classList.add('open');
 }
 
 window.cerrarModalBanco = function(e){
-  if(!e || e.target === document.getElementById('modal-eliminar-banco')){
+  if(!e || e.target===document.getElementById('modal-eliminar-banco')){
     document.getElementById('modal-eliminar-banco').classList.remove('open');
   }
 }
@@ -1676,17 +1679,24 @@ window.cerrarModalBanco = function(e){
 window.confirmarEliminarBanco = function(){
   document.getElementById('modal-eliminar-banco').classList.remove('open');
 
-  // si es el ultimo banco, eliminar perfil
-  if(perfil && perfil.tarjetas && perfil.tarjetas.length === 1){
-    eliminarPerfil();
+  if(perfil.tarjetas.length === 1){
+    document.getElementById('modal-eliminar-perfil').classList.add('open');
     return;
   }
 
-  // eliminar solo banco
-  if(window._bancoEliminarId){
-    perfil.tarjetas = perfil.tarjetas.filter(t => t.id !== window._bancoEliminarId);
-    renderPerfiles();
+  perfil.tarjetas = perfil.tarjetas.filter(t=>t.id!==window._bancoId);
+  renderPerfiles();
+}
+
+window.cerrarModalPerfil = function(e){
+  if(!e || e.target===document.getElementById('modal-eliminar-perfil')){
+    document.getElementById('modal-eliminar-perfil').classList.remove('open');
   }
+}
+
+window.confirmarEliminarPerfil = async function(){
+  document.getElementById('modal-eliminar-perfil').classList.remove('open');
+  await eliminarPerfil();
 }
 
 </script>
@@ -1727,17 +1737,28 @@ window.confirmarEliminarBanco = function(){
 
 
 
-<!-- MODAL ELIMINAR BANCO -->
 <div class="modal-overlay" id="modal-eliminar-banco" onclick="cerrarModalBanco(event)">
   <div class="modal">
     <div class="modal-handle"></div>
     <div style="text-align:center;padding:10px 0 20px">
       <div style="font-size:18px;font-weight:700;color:#111">¿Eliminar este banco?</div>
-      <div style="font-size:13px;color:#666;margin-top:6px">Esta acción no se puede deshacer</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <button onclick="cerrarModalBanco()" style="padding:13px;border-radius:12px;border:1.5px solid #e5e7eb;background:#fff;font-size:15px;font-weight:600;color:#666">Cancelar</button>
-      <button onclick="confirmarEliminarBanco()" style="padding:13px;border-radius:12px;border:none;background:#ef4444;color:#fff;font-size:15px;font-weight:600">Eliminar</button>
+      <button onclick="cerrarModalBanco()" style="padding:13px;border-radius:12px;border:1px solid #ddd;background:#fff">Cancelar</button>
+      <button onclick="confirmarEliminarBanco()" style="padding:13px;border-radius:12px;background:#ef4444;color:#fff;border:none">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-eliminar-perfil" onclick="cerrarModalPerfil(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:10px 0 20px">
+      <div style="font-size:18px;font-weight:700;color:#111">¿Eliminar el perfil completo?</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="cerrarModalPerfil()" style="padding:13px;border-radius:12px;border:1px solid #ddd;background:#fff">Cancelar</button>
+      <button onclick="confirmarEliminarPerfil()" style="padding:13px;border-radius:12px;background:#ef4444;color:#fff;border:none">Eliminar</button>
     </div>
   </div>
 </div>
