@@ -1091,13 +1091,19 @@ window.guardarExt = async function(){
     return;
   }
 
+  // Combinar la fecha seleccionada con la hora actual
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  const fechaConHora = new Date(fecha + 'T' + hh + ':' + mm + ':' + ss);
   const datos = {
     tipo:'egreso',
     tarjetaId: t.id,
     banco: t.nombre,
     monto: monto,
-    fecha: fecha, // usa la fecha del calendario
-    creadoEn: new Date().getTime()
+    fecha: fecha,
+    creadoEn: fechaConHora.getTime()
   };
 
   try{
@@ -1342,13 +1348,19 @@ window.guardarExt = async function(){
     return;
   }
 
+  // Combinar la fecha seleccionada con la hora actual
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  const fechaConHora = new Date(fecha + 'T' + hh + ':' + mm + ':' + ss);
   const datos = {
     tipo:'egreso',
     tarjetaId: t.id,
     banco: t.nombre,
     monto: monto,
-    fecha: fecha, // usa la fecha del calendario
-    creadoEn: new Date().getTime()
+    fecha: fecha,
+    creadoEn: fechaConHora.getTime()
   };
 
   try{
