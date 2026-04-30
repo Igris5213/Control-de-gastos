@@ -79,11 +79,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .topbar-settings{position:absolute;right:20px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:4px}
 
 /* CARRUSEL */
-.cards-outer{padding:0 20px;overflow:hidden;user-select:none;-webkit-user-select:none}
-.cards-track{display:flex;gap:14px;will-change:transform;transition:transform 0.38s cubic-bezier(0.25,0.46,0.45,0.94)}
-.cards-track.dragging{transition:none}
-.bank-card{flex-shrink:0;width:calc(100vw - 40px);max-width:390px;border-radius:20px;padding:22px;color:#fff;position:relative;cursor:grab;touch-action:pan-y}
-.bank-card:active{cursor:grabbing}
+.cards-outer{overflow:hidden;margin:0 16px;border-radius:20px;touch-action:pan-y}
+.cards-inner{display:flex;transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform}
+.cards-inner.no-anim{transition:none}
+.bank-card{flex:0 0 100%;border-radius:20px;padding:22px;color:#fff;position:relative;box-sizing:border-box}
 
 /* CSS tarjeta rediseñada */
 .card-top-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
@@ -413,9 +412,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <!-- Tarjeta banco -->
-    <div style="margin:0 0 12px">
+    <div style="margin:0 16px 12px">
       <div class="cards-outer" id="cards-outer">
-        <div class="cards-track" id="cards-track"></div>
+        <div class="cards-inner" id="cards-inner"></div>
       </div>
       <div class="dots" id="dots"></div>
     </div>
@@ -652,14 +651,16 @@ async function iniciarApp(){
 let startX=0, diffX=0, dragging=false;
 
 function buildCarrusel(){
-  const track = document.getElementById('cards-track');
   const dotsEl = document.getElementById('dots');
-  track.innerHTML = '';
+  const outer = document.getElementById('cards-outer');
+  const inner = document.getElementById('cards-inner');
+  inner.innerHTML = '';
   dotsEl.innerHTML = '';
 
   perfil.tarjetas.forEach((t,i)=>{
     const card = document.createElement('div');
     card.className = `bank-card ${t.color}`;
+    card.setAttribute('data-idx', i);
     card.innerHTML = `
       <div class="card-bank-name" style="text-align:center;margin-bottom:16px">${t.nombre}</div>
       <div class="card-lim-label">Límite total</div>
@@ -683,7 +684,7 @@ function buildCarrusel(){
           <div class="card-stats-gasto">Gasto por día: <span id="xdia-${i}">$0.00</span></div>
         </div>
       </div>`;
-    track.appendChild(card);
+    inner.appendChild(card);
 
     const dot = document.createElement('div');
     dot.className = 'dot' + (i===0?' active':'');
@@ -692,7 +693,8 @@ function buildCarrusel(){
   });
 
   setupSwipe();
-  goTo(0, false);
+  // Esperar a que el DOM se pinte antes de calcular anchos
+  setTimeout(()=>goTo(0, false), 100);
   // Iniciar listener de Firebase
   const q = query(collection(db,'movimientos'), orderBy('creadoEn','desc'));
   onSnapshot(q, snap=>{
@@ -704,68 +706,82 @@ function buildCarrusel(){
 
 function setupSwipe(){
   const outer = document.getElementById('cards-outer');
-  const track = document.getElementById('cards-track');
+  let sx=0, dx=0, isDragging=false;
 
-  outer.addEventListener('touchstart',e=>{
+  function getW(){ return outer.offsetWidth; }
+  function move(idx, anim=true){
+    const inner = document.getElementById('cards-inner');
+    if(!inner) return;
+    inner.classList.toggle('no-anim', !anim);
+    inner.style.transform = `translateX(${-(idx * getW())}px)`;
+    document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  }
+
+  // Touch
+  outer.addEventListener('touchstart', e=>{
     if(e.target.closest('button')) return;
-    startX=e.touches[0].clientX; diffX=0; dragging=true; track.classList.add('dragging');
+    sx=e.touches[0].clientX; dx=0; isDragging=true;
   },{passive:true});
-  outer.addEventListener('touchmove',e=>{
-    if(!dragging) return;
-    diffX=e.touches[0].clientX-startX;
-    const base=-(current*(outer.offsetWidth+14));
-    track.style.transform=`translateX(${base+diffX}px)`;
+  outer.addEventListener('touchmove', e=>{
+    if(!isDragging) return;
+    dx = e.touches[0].clientX - sx;
+    const inner = document.getElementById('cards-inner');
+    if(inner) inner.style.transform = `translateX(${-(current*getW())+dx}px)`;
   },{passive:true});
-  outer.addEventListener('touchend',()=>{
-    if(!dragging)return;
-    dragging=false;
-    track.classList.remove('dragging');
-    if(diffX<-50) goTo(current+1);
-    else if(diffX>50) goTo(current-1);
-    else {
-      const outer2=document.getElementById('cards-outer');
-      track.style.transform=`translateX(${-(current*(outer2.offsetWidth+14))}px)`;
-    }
+  outer.addEventListener('touchend', ()=>{
+    if(!isDragging) return;
+    isDragging=false;
+    const n=perfil.tarjetas.length;
+    if(dx < -50 && current < n-1) current++;
+    else if(dx > 50 && current > 0) current--;
+    move(current, true);
+    renderMovimientos(); updateCards();
   });
 
-  outer.addEventListener('mousedown',e=>{
-    if(e.target.closest('button')) return; // ignorar clicks en botones
-    startX=e.clientX; diffX=0; dragging=true; track.classList.add('dragging');
-    e.preventDefault();
+  // Mouse
+  outer.addEventListener('mousedown', e=>{
+    if(e.target.closest('button')) return;
+    sx=e.clientX; dx=0; isDragging=true; e.preventDefault();
   });
-  window.addEventListener('mousemove',e=>{ if(!dragging)return; diffX=e.clientX-startX; const base=-(current*(outer.offsetWidth+14)); document.getElementById('cards-track').style.transform=`translateX(${base+diffX}px)`; });
-  window.addEventListener('mouseup',()=>{
-    if(!dragging)return;
-    dragging=false;
-    track.classList.remove('dragging');
-    if(diffX<-50) goTo(current+1);
-    else if(diffX>50) goTo(current-1);
-    else {
-      // Regresar a posición sin re-renderizar si no cambió de tarjeta
-      const outer2=document.getElementById('cards-outer');
-      track.style.transform=`translateX(${-(current*(outer2.offsetWidth+14))}px)`;
-    }
+  window.addEventListener('mousemove', e=>{
+    if(!isDragging) return;
+    dx = e.clientX - sx;
+    const inner = document.getElementById('cards-inner');
+    if(inner) inner.style.transform = `translateX(${-(current*getW())+dx}px)`;
   });
-  window.addEventListener('resize',()=>goTo(current,false));
+  window.addEventListener('mouseup', ()=>{
+    if(!isDragging) return;
+    isDragging=false;
+    const n=perfil.tarjetas.length;
+    if(dx < -50 && current < n-1) current++;
+    else if(dx > 50 && current > 0) current--;
+    move(current, true);
+    renderMovimientos(); updateCards();
+  });
+  window.addEventListener('resize', ()=>move(current, false));
+
+  goTo._move = move;
 }
 
-window.goTo = function goTo(idx, animate=true){
-  const outer = document.getElementById('cards-outer');
-  const track = document.getElementById('cards-track');
-  if(!track || !perfil) return;
+window.goTo = function(idx, animate=true){
+  if(!perfil) return;
   const n = perfil.tarjetas.length;
-  idx = Math.max(0,Math.min(idx,n-1));
+  idx = Math.max(0, Math.min(idx, n-1));
   current = idx;
-  if(animate) track.classList.remove('dragging'); else track.classList.add('dragging');
-  track.style.transform=`translateX(${-(idx*(outer.offsetWidth+14))}px)`;
+  if(goTo._move) goTo._move(idx, animate);
+  else {
+    const inner = document.getElementById('cards-inner');
+    const outer = document.getElementById('cards-outer');
+    if(inner && outer){
+      inner.classList.toggle('no-anim', !animate);
+      inner.style.transform = `translateX(${-(idx*outer.offsetWidth)}px)`;
+    }
+  }
   document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
-  perfil.tarjetas.forEach((_,i)=>{
-    const b=document.getElementById(`badge-${i}`);
-    if(b) b.style.display = i===idx ? 'flex' : 'none';
-  });
   renderMovimientos();
   updateCards();
 }
+
 
 // ── Tarjetas: datos ──────────────────────────────
 function fmt(n){ return '$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}) }
@@ -932,7 +948,8 @@ async function eliminarPerfil(){
     mainApp.style.display = 'none';
 
     // Reset formulario
-    document.getElementById('cards-track').innerHTML = '';
+    const cardsInner = document.getElementById('cards-inner');
+    if(cardsInner) cardsInner.innerHTML = '';
     document.getElementById('dots').innerHTML = '';
     document.getElementById('inp-nombre').value = '';
     document.getElementById('inp-limite-ob').value = '';
