@@ -10,7 +10,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .app{width:100%;max-width:430px;background:#f4f5f9;min-height:100vh;display:flex;flex-direction:column;position:relative}
 
 /* ── PANTALLAS DE ONBOARDING ── */
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:32px 24px;background:#f4f5f9;}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;z-index:200;padding:24px;background:#f4f5f9;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
 .screen.hidden{display:none}
 
 /* Bienvenida */
@@ -72,10 +73,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* ── APP PRINCIPAL ── */
 .main-app{display:none;flex-direction:column;width:100%}
-.main-app.visible{display:flex;flex-direction:column;height:100vh;overflow-y:scroll;scrollbar-width:none;width:100%}
-.main-app.visible::-webkit-scrollbar{display:none}
+.main-app.visible{display:flex;flex-direction:column;height:100vh;overflow:hidden;width:100%}
 .topbar{background:#f4f5f9;padding:16px 20px 8px;display:flex;align-items:center;justify-content:center;position:relative}
-.top-section{background:#f4f5f9;flex-shrink:0}
+.top-section{background:#f4f5f9;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.top-section::-webkit-scrollbar{display:none}
 .topbar-title{font-size:20px;font-weight:700;color:#111;text-align:center}
 .topbar-settings{position:absolute;right:20px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:4px}
 
@@ -545,7 +546,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <!-- Movimientos -->
-    <div class="section-card" style="margin-bottom:32px;height:340px;overflow-y:auto">
+    <div class="section-card" style="margin-bottom:32px">
       <div class="section-card-title">Últimos movimientos</div>
       <div id="mov-list"></div>
     </div>
@@ -1997,7 +1998,7 @@ window.confirmarEliminarPerfil = async function(){
     <!-- Movimientos -->
     <div class="section-card" id="recuadro-movimientos" style="display:none;margin:0 0 12px">
       <div class="section-card-title">Movimientos</div>
-      <div id="movimientos-full" style="max-height:55vh;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
+      <div id="movimientos-full"></div>
     </div>
   </div>
 </div>
