@@ -633,6 +633,9 @@ async function iniciarApp(){
     movimientos = snap.docs.map(d=>({id:d.id,...d.data()}));
     updateCards();
     renderMovimientos();
+    // Forzar visibilidad correcta del contenedor
+    const lista = document.getElementById('mov-list');
+    if(lista) lista.style.display = movVisible ? 'block' : 'none';
   });
 }
 
@@ -828,15 +831,12 @@ window.guardar = async function(){
         tipo:'egreso', tarjetaId:t.id, banco:t.nombre, monto,
         fecha:now.toISOString().split('T')[0], creadoEn:now.getTime()
       });
+      // Abrir lista automáticamente para ver el nuevo movimiento
+      movVisible = true;
+      const verBtn = document.getElementById('ver-mas-btn');
+      verBtn.textContent = 'Ver menos ▴';
+      verBtn.classList.add('open');
       showToast('✓ Guardado en la nube');
-      // Abrir lista si está cerrada para ver el nuevo movimiento
-      if(!movVisible){
-        movVisible = true;
-        document.getElementById('mov-list').style.display = 'block';
-        const btn = document.getElementById('ver-mas-btn');
-        btn.textContent = 'Ver menos ▴';
-        btn.classList.add('open');
-      }
     }
     document.getElementById('modal-overlay').classList.remove('open');
   } catch(e){ showToast('❌ Error al guardar'); }
