@@ -71,33 +71,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .corte-item.selected{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600}
 
 /* ── APP PRINCIPAL ── */
-.main-app{display:none;flex-direction:column}
-.main-app.visible{display:flex;flex-direction:column;min-height:100vh}
+.main-app{display:none;flex-direction:column;width:100%}
+.main-app.visible{display:flex;flex-direction:column;height:100vh;overflow-y:scroll;scrollbar-width:none;width:100%}
+.main-app.visible::-webkit-scrollbar{display:none}
 .topbar{background:#f4f5f9;padding:16px 20px 8px;display:flex;align-items:center;justify-content:center;position:relative}
-.top-section{background:#f4f5f9}
+.top-section{background:#f4f5f9;flex-shrink:0}
 .topbar-title{font-size:20px;font-weight:700;color:#111;text-align:center}
 .topbar-settings{position:absolute;right:20px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:4px}
 
 /* CARRUSEL */
 .cards-outer{
-  display:grid;
-  grid-auto-flow:column;
-  grid-auto-columns:100%;
-  overflow-x:scroll;
-  overflow-y:hidden;
-  scroll-snap-type:x mandatory;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-  border-radius:20px;
   margin:0 16px;
+  border-radius:20px;
+  overflow:hidden;
+  flex-shrink:0;
+  align-self:stretch;
 }
-.cards-outer::-webkit-scrollbar{display:none}
 .bank-card{
-  scroll-snap-align:start;
+  display:none;
   border-radius:20px;
   padding:22px;
   color:#fff;
   box-sizing:border-box;
+}
+.bank-card.active-card{
+  display:block;
   width:100%;
 }
 
@@ -516,9 +514,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <!-- Tarjeta banco -->
-    <div class="cards-outer" id="cards-outer">
-      <div class="cards-inner-wrap" id="cards-wrap"></div>
-    </div>
+    <div class="cards-outer" id="cards-outer"></div>
     <div class="dots" id="dots"></div>
 
     <!-- Nuevo gasto -->
@@ -534,7 +530,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <!-- Movimientos -->
-    <div class="section-card" style="margin-bottom:32px">
+    <div class="section-card" style="margin-bottom:32px;height:340px;overflow-y:auto">
       <div class="section-card-title">Últimos movimientos</div>
       <div id="mov-list"></div>
     </div>
@@ -672,7 +668,7 @@ window.agregarTarjetaOb = function(){
   if(!corte||corte<1||corte>31){ showToast('Selecciona o escribe la fecha de corte'); return; }
   if(!limite||limite<=0){ document.getElementById('inp-limite-ob').focus(); return; }
 
-  tarjetasOb.push({ id: Date.now()+'', nombre, corte, limite, color: COLORS[tarjetasOb.length % COLORS.length] });
+  tarjetasOb.push({ id: Date.now()+'_'+Math.random().toString(36).substr(2,9), nombre, corte, limite, color: COLORS[tarjetasOb.length % COLORS.length] });
   renderTarjetasOb();
 
   // Reset
@@ -782,32 +778,21 @@ async function iniciarApp(){
   });
 }
 
-// ── CARRUSEL ─────────────────────────────────────
-let _cardW = 0;
-let _cardH = 0;
-
-function getOuterW(){
-  const outer = document.getElementById('cards-outer');
-  return outer ? outer.clientWidth : Math.min(window.innerWidth,430) - 32;
-}
-
-function posicionarTarjetas(anim=true){
-  goTo(current, anim);
-}
-
+// ── CARRUSEL ─────────────────────────────────────────────────────────────
 function buildCarrusel(){
   const dotsEl = document.getElementById('dots');
-  const outer = document.getElementById('cards-outer');
-  outer.innerHTML = '';
+  const outer  = document.getElementById('cards-outer');
+  outer.innerHTML  = '';
   dotsEl.innerHTML = '';
   current = 0;
 
+  const COLORS = ['card-color-0','card-color-1','card-color-2','card-color-3','card-color-4','card-color-5'];
+
   perfil.tarjetas.forEach((t,i)=>{
     const card = document.createElement('div');
-    card.className = `bank-card ${t.color}`;
-    card.setAttribute('data-idx', i);
+    card.className = `bank-card ${t.color || COLORS[i % COLORS.length]}`;
     card.innerHTML = `
-      <div class="card-bank-name" style="text-align:center;margin-bottom:16px">${t.nombre}</div>
+      <div class="card-bank-name" style="text-align:center;margin-bottom:16px;font-size:20px;font-weight:800">${t.nombre}</div>
       <div class="card-lim-label">Límite total</div>
       <div class="card-lim-val" id="lim-${i}">$${t.limite.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
       <div class="card-use-row">
@@ -832,60 +817,45 @@ function buildCarrusel(){
     outer.appendChild(card);
 
     const dot = document.createElement('div');
-    dot.className = 'dot' + (i===0?' active':'');
+    dot.className = 'dot' + (i===0 ? ' active' : '');
     dot.onclick = ()=>goTo(i);
     dotsEl.appendChild(dot);
   });
 
   setupSwipe();
-  setTimeout(()=>goTo(current, false), 50);
+  goTo(0, false);
 }
 
 function setupSwipe(){
   const outer = document.getElementById('cards-outer');
-  let sx=0, dx=0, isDragging=false;
+  let sx=0, sy=0, dx=0, dragging=false;
 
+  function cambiar(){
+    const n = perfil ? perfil.tarjetas.length : 1;
+    if(dx < -50 && current < n-1) goTo(current+1);
+    else if(dx > 50 && current > 0) goTo(current-1);
+  }
+
+  // Touch
   outer.addEventListener('touchstart', e=>{
-    if(e.target.closest('button')) return;
-    sx=e.touches[0].clientX; dx=0; isDragging=true;
+    if(e.target.closest('button,input,select')) return;
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; dx=0; dragging=true;
   },{passive:true});
-
   outer.addEventListener('touchmove', e=>{
-    if(!isDragging) return;
+    if(!dragging) return;
     dx = e.touches[0].clientX - sx;
-    const wrap = document.getElementById('cards-wrap');
-    if(wrap){ wrap.classList.add('no-anim'); wrap.style.transform = `translateX(${-current*_cardW+dx}px)`; }
+    const dy = e.touches[0].clientY - sy;
+    if(Math.abs(dy) > Math.abs(dx)) { dragging=false; return; }
   },{passive:true});
+  outer.addEventListener('touchend', ()=>{ if(!dragging) return; dragging=false; cambiar(); });
 
-  outer.addEventListener('touchend', ()=>{
-    if(!isDragging) return;
-    isDragging = false;
-    const n = perfil.tarjetas.length;
-    if(dx < -50 && current < n-1) current++;
-    else if(dx > 50 && current > 0) current--;
-    goTo(current);
-  });
-
+  // Mouse
   outer.addEventListener('mousedown', e=>{
-    if(e.target.closest('button')) return;
-    sx=e.clientX; dx=0; isDragging=true; e.preventDefault();
+    if(e.target.closest('button,input')) return;
+    sx=e.clientX; dx=0; dragging=true; e.preventDefault();
   });
-  window.addEventListener('mousemove', e=>{
-    if(!isDragging) return;
-    dx = e.clientX - sx;
-    const wrap = document.getElementById('cards-wrap');
-    if(wrap){ wrap.classList.add('no-anim'); wrap.style.transform = `translateX(${-current*_cardW+dx}px)`; }
-  });
-  window.addEventListener('mouseup', ()=>{
-    if(!isDragging) return;
-    isDragging = false;
-    const n = perfil.tarjetas.length;
-    if(dx < -50 && current < n-1) current++;
-    else if(dx > 50 && current > 0) current--;
-    goTo(current);
-  });
-
-  window.addEventListener('resize', ()=>posicionarTarjetas(false));
+  window.addEventListener('mousemove', e=>{ if(!dragging) return; dx=e.clientX-sx; });
+  window.addEventListener('mouseup', ()=>{ if(!dragging) return; dragging=false; cambiar(); });
 }
 
 window.goTo = function(idx, animate=true){
@@ -893,11 +863,10 @@ window.goTo = function(idx, animate=true){
   const n = perfil.tarjetas.length;
   idx = Math.max(0, Math.min(idx, n-1));
   current = idx;
-  const outer = document.getElementById('cards-outer');
-  if(outer){
-    const w = outer.offsetWidth;
-    outer.scrollTo({left: idx * w, behavior: animate ? 'smooth' : 'auto'});
-  }
+  // Mostrar solo la tarjeta activa
+  document.querySelectorAll('.bank-card').forEach((c,i)=>{
+    c.classList.toggle('active-card', i===idx);
+  });
   document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
   renderMovimientos();
   updateCards();
@@ -1290,7 +1259,7 @@ window.guardarNuevaTarjeta = async function(){
   if(!corte){ showToast('Selecciona fecha de corte'); return; }
   if(!limite||limite<=0){ showToast('Ingresa un límite válido'); return; }
   const COLORS = ['card-color-0','card-color-1','card-color-2','card-color-3','card-color-4','card-color-5'];
-  const nueva = { id: Date.now()+'', nombre, corte, limite, color: COLORS[perfil.tarjetas.length % COLORS.length] };
+  const nueva = { id: Date.now()+'_'+Math.random().toString(36).substr(2,9), nombre, corte, limite, color: COLORS[perfil.tarjetas.length % COLORS.length] };
   perfil.tarjetas.push(nueva);
   try{
     await setDoc(doc(db,'perfil','usuario'), perfil);
@@ -1394,7 +1363,7 @@ window.irDetalle = function(){
   const main = document.getElementById('main-app');
   main.style.display='flex';
   main.classList.add('visible');
-  setTimeout(()=>posicionarTarjetas(false), 50);
+  goTo(current, false);
 }
 
 function cargarBancosFiltro(){
