@@ -56,8 +56,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .banco-selector-btn.selected{color:#111;border-color:#7c3aed}
 
 /* Popup lista bancos */
-.banco-popup-list{display:flex;flex-direction:column;height:55vh;overflow-y:scroll;gap:2px;-webkit-overflow-scrolling:touch}
-.banco-popup-item{display:flex;align-items:center;justify-content:space-between;padding:14px 4px;border-bottom:1px solid #f0f0f0;font-size:15px;font-weight:500;color:#111;cursor:pointer;transition:color 0.15s}
+.banco-popup-list{display:flex;flex-direction:column;max-height:55vh;overflow-y:auto;gap:2px;-webkit-overflow-scrolling:touch}
+.banco-popup-item{display:flex;align-items:center;padding:14px 4px;border-bottom:1px solid #f0f0f0;font-size:15px;font-weight:500;color:#111;cursor:pointer;transition:all 0.15s}
 .banco-popup-item:last-child{border-bottom:none}
 .banco-popup-item:hover{color:#7c3aed}
 .banco-popup-item.active{color:#7c3aed;font-weight:700}
@@ -203,7 +203,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="ob-label">Banco o tarjeta</div>
         <button class="banco-selector-btn" id="banco-selector-btn" onclick="abrirPopupBanco()">
           <span id="banco-selector-txt">Seleccionar banco...</span>
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          <span style="color:#aaa;font-size:12px">▾</span>
         </button>
         <input class="ob-input" id="inp-banco-ob" placeholder="Nombre del banco..." maxlength="20" style="display:none;margin-top:10px" />
       </div>
@@ -211,7 +211,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="ob-label">Fecha de corte</div>
         <button class="banco-selector-btn" id="corte-selector-btn" onclick="abrirPopupCorte()">
           <span id="corte-selector-txt">Seleccionar día...</span>
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          <span style="color:#aaa;font-size:12px">▾</span>
         </button>
       </div>
       <div class="ob-field">
@@ -237,30 +237,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div style="font-size:18px;font-weight:700;color:#111;margin-bottom:16px">Selecciona tu banco</div>
     <div class="banco-popup-list">
       <div class="banco-popup-item" onclick="elegirBanco('BBVA')">
-        <span>BBVA</span><span class="banco-check" id="chk-BBVA"></span>
+        <span>BBVA</span>
       </div>
       <div class="banco-popup-item" onclick="elegirBanco('Banorte')">
-        <span>Banorte</span><span class="banco-check" id="chk-Banorte"></span>
+        <span>Banorte</span>
       </div>
       <div class="banco-popup-item" onclick="elegirBanco('Citibanamex')">
-        <span>Citibanamex</span><span class="banco-check" id="chk-Citibanamex"></span>
+        <span>Citibanamex</span>
       </div>
       <div class="banco-popup-item" onclick="elegirBanco('Santander')">
-        <span>Santander</span><span class="banco-check" id="chk-Santander"></span>
+        <span>Santander</span>
       </div>
       <div class="banco-popup-item" onclick="elegirBanco('HSBC')">
-        <span>HSBC</span><span class="banco-check" id="chk-HSBC"></span>
+        <span>HSBC</span>
       </div>
       <div class="banco-popup-item" onclick="elegirBanco('Scotiabank')">
-        <span>Scotiabank</span><span class="banco-check" id="chk-Scotiabank"></span>
+        <span>Scotiabank</span>
       </div>
       <div class="banco-popup-item" onclick="elegirBanco('Invex')">
-        <span>Invex</span><span class="banco-check" id="chk-Invex"></span>
+        <span>Invex</span>
       </div>
       <div class="banco-popup-item" onclick="elegirBanco('Banamex')">
-        <span>Banamex</span><span class="banco-check" id="chk-Banamex"></span>
+        <span>Banamex</span>
       </div>
-
     </div>
   </div>
 </div>
@@ -272,97 +271,97 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div style="font-size:18px;font-weight:700;color:#111;margin-bottom:16px">Fecha de corte</div>
     <div class="banco-popup-list">
       <div class="banco-popup-item" onclick="elegirCorte(1)">
-        <span>1</span><span class="banco-check" id="chk-dia-1"></span>
+        <span>1</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(2)">
-        <span>2</span><span class="banco-check" id="chk-dia-2"></span>
+        <span>2</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(3)">
-        <span>3</span><span class="banco-check" id="chk-dia-3"></span>
+        <span>3</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(4)">
-        <span>4</span><span class="banco-check" id="chk-dia-4"></span>
+        <span>4</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(5)">
-        <span>5</span><span class="banco-check" id="chk-dia-5"></span>
+        <span>5</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(6)">
-        <span>6</span><span class="banco-check" id="chk-dia-6"></span>
+        <span>6</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(7)">
-        <span>7</span><span class="banco-check" id="chk-dia-7"></span>
+        <span>7</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(8)">
-        <span>8</span><span class="banco-check" id="chk-dia-8"></span>
+        <span>8</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(9)">
-        <span>9</span><span class="banco-check" id="chk-dia-9"></span>
+        <span>9</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(10)">
-        <span>10</span><span class="banco-check" id="chk-dia-10"></span>
+        <span>10</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(11)">
-        <span>11</span><span class="banco-check" id="chk-dia-11"></span>
+        <span>11</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(12)">
-        <span>12</span><span class="banco-check" id="chk-dia-12"></span>
+        <span>12</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(13)">
-        <span>13</span><span class="banco-check" id="chk-dia-13"></span>
+        <span>13</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(14)">
-        <span>14</span><span class="banco-check" id="chk-dia-14"></span>
+        <span>14</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(15)">
-        <span>15</span><span class="banco-check" id="chk-dia-15"></span>
+        <span>15</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(16)">
-        <span>16</span><span class="banco-check" id="chk-dia-16"></span>
+        <span>16</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(17)">
-        <span>17</span><span class="banco-check" id="chk-dia-17"></span>
+        <span>17</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(18)">
-        <span>18</span><span class="banco-check" id="chk-dia-18"></span>
+        <span>18</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(19)">
-        <span>19</span><span class="banco-check" id="chk-dia-19"></span>
+        <span>19</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(20)">
-        <span>20</span><span class="banco-check" id="chk-dia-20"></span>
+        <span>20</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(21)">
-        <span>21</span><span class="banco-check" id="chk-dia-21"></span>
+        <span>21</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(22)">
-        <span>22</span><span class="banco-check" id="chk-dia-22"></span>
+        <span>22</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(23)">
-        <span>23</span><span class="banco-check" id="chk-dia-23"></span>
+        <span>23</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(24)">
-        <span>24</span><span class="banco-check" id="chk-dia-24"></span>
+        <span>24</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(25)">
-        <span>25</span><span class="banco-check" id="chk-dia-25"></span>
+        <span>25</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(26)">
-        <span>26</span><span class="banco-check" id="chk-dia-26"></span>
+        <span>26</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(27)">
-        <span>27</span><span class="banco-check" id="chk-dia-27"></span>
+        <span>27</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(28)">
-        <span>28</span><span class="banco-check" id="chk-dia-28"></span>
+        <span>28</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(29)">
-        <span>29</span><span class="banco-check" id="chk-dia-29"></span>
+        <span>29</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(30)">
-        <span>30</span><span class="banco-check" id="chk-dia-30"></span>
+        <span>30</span>
       </div>
       <div class="banco-popup-item" onclick="elegirCorte(31)">
-        <span>31</span><span class="banco-check" id="chk-dia-31"></span>
+        <span>31</span>
       </div>
     </div>
   </div>
