@@ -79,10 +79,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .topbar-settings{position:absolute;right:20px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:4px}
 
 /* CARRUSEL */
-.cards-outer{overflow:hidden;margin:0 16px;border-radius:20px;touch-action:pan-y}
-.cards-inner{display:flex;transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);will-change:transform}
-.cards-inner.no-anim{transition:none}
-.bank-card{flex:0 0 100%;border-radius:20px;padding:22px;color:#fff;position:relative;box-sizing:border-box}
+.cards-outer{position:relative;overflow:hidden;margin:0 16px}
+.bank-card{position:absolute;top:0;left:0;border-radius:20px;padding:22px;color:#fff;box-sizing:border-box;transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94)}
+.bank-card.no-anim{transition:none}
+#cards-outer{display:block}
 
 /* CSS tarjeta rediseñada */
 .card-top-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
@@ -469,12 +469,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <!-- Tarjeta banco -->
-    <div style="margin:0 16px 12px">
-      <div class="cards-outer" id="cards-outer">
-        <div class="cards-inner" id="cards-inner"></div>
-      </div>
-      <div class="dots" id="dots"></div>
-    </div>
+    <div class="cards-outer" id="cards-outer"></div>
+    <div class="dots" id="dots"></div>
 
     <!-- Nuevo gasto -->
     <div class="section-card">
@@ -557,11 +553,19 @@ window.elegirBanco = function(nombre){
   document.querySelectorAll('#banco-popup-overlay .banco-popup-item').forEach(i=>i.classList.remove('active'));
   const chk = document.getElementById('chk-'+nombre);
   if(chk){ chk.classList.add('checked'); chk.textContent='✓'; chk.parentElement.classList.add('active'); }
-  selectedBancoNombre = nombre;
-  document.getElementById('inp-banco-ob').style.display = 'none';
-  document.getElementById('banco-selector-btn').classList.add('selected');
-  document.getElementById('banco-selector-txt').textContent = nombre;
   document.getElementById('banco-popup-overlay').classList.remove('open');
+
+  if(window._bancoEditMode){
+    window._bancoEditMode = false;
+    selectedBancoEdit = nombre;
+    const btn = document.getElementById('banco-edit-btn');
+    if(btn){ btn.classList.add('selected'); document.getElementById('banco-edit-txt').textContent = nombre; }
+  } else {
+    selectedBancoNombre = nombre;
+    document.getElementById('inp-banco-ob').style.display = 'none';
+    document.getElementById('banco-selector-btn').classList.add('selected');
+    document.getElementById('banco-selector-txt').textContent = nombre;
+  }
 }
 
 window.abrirPopupCorte = function(){
@@ -578,10 +582,18 @@ window.elegirCorte = function(dia){
   document.querySelectorAll('#corte-popup-overlay .banco-popup-item').forEach(i=>i.classList.remove('active'));
   const chk = document.getElementById('chk-dia-'+dia);
   if(chk){ chk.classList.add('checked'); chk.textContent='✓'; chk.parentElement.classList.add('active'); }
-  selectedCorte = dia;
-  document.getElementById('corte-selector-btn').classList.add('selected');
-  document.getElementById('corte-selector-txt').textContent = dia;
   document.getElementById('corte-popup-overlay').classList.remove('open');
+
+  if(window._corteEditMode){
+    window._corteEditMode = false;
+    selectedCorteEdit = dia;
+    const btn = document.getElementById('corte-edit-btn');
+    if(btn){ btn.classList.add('selected'); document.getElementById('corte-edit-txt').textContent = dia; }
+  } else {
+    selectedCorte = dia;
+    document.getElementById('corte-selector-btn').classList.add('selected');
+    document.getElementById('corte-selector-txt').textContent = dia;
+  }
 }
 
 window.selectCorteOb = function(el, dia){
@@ -701,8 +713,16 @@ async function iniciarApp(){
   // Saludo
   // saludo eliminado
 
-  // Construir carrusel y luego escuchar movimientos
+  // Construir carrusel
   buildCarrusel();
+
+  // Firebase listener - solo una vez
+  const q = query(collection(db,'movimientos'), orderBy('creadoEn','desc'));
+  onSnapshot(q, snap=>{
+    movimientos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    updateCards();
+    renderMovimientos();
+  });
 }
 
 // ── Carrusel ─────────────────────────────────────
@@ -711,7 +731,7 @@ let startX=0, diffX=0, dragging=false;
 function buildCarrusel(){
   const dotsEl = document.getElementById('dots');
   const outer = document.getElementById('cards-outer');
-  const inner = document.getElementById('cards-inner');
+  const inner = document.getElementById('cards-outer');
   inner.innerHTML = '';
   dotsEl.innerHTML = '';
 
@@ -751,8 +771,10 @@ function buildCarrusel(){
   });
 
   setupSwipe();
-  // Esperar a que el DOM se pinte antes de calcular anchos
-  setTimeout(()=>goTo(0, false), 100);
+  setTimeout(()=>{
+    aplicarAnchos();
+    goTo(current, false);
+  }, 50);
   // Iniciar listener de Firebase
   const q = query(collection(db,'movimientos'), orderBy('creadoEn','desc'));
   onSnapshot(q, snap=>{
@@ -762,41 +784,118 @@ function buildCarrusel(){
   });
 }
 
+// ── CARRUSEL ─────────────────────────────────────
+let _cardW = 0;
+let _cardH = 0;
+
+function getOuterW(){
+  const outer = document.getElementById('cards-outer');
+  return outer ? outer.clientWidth : Math.min(window.innerWidth,430) - 32;
+}
+
+function posicionarTarjetas(anim=true){
+  const w = getOuterW();
+  if(w < 10) return;
+  _cardW = w;
+  const outer = document.getElementById('cards-outer');
+  const cards = document.querySelectorAll('.bank-card');
+
+  // Paso 1: medir altura con posición relativa temporal
+  cards.forEach(c=>{
+    c.style.position = 'relative';
+    c.style.width = w + 'px';
+    c.style.transform = '';
+    c.style.visibility = 'hidden';
+  });
+  const h = Math.max(300, ...Array.from(cards).map(c=>c.offsetHeight));
+  _cardH = h;
+
+  // Paso 2: posicionar absolutamente
+  if(outer) outer.style.height = h + 'px';
+  cards.forEach((c,i)=>{
+    c.style.position = 'absolute';
+    c.style.top = '0';
+    c.style.left = '0';
+    c.style.width = w + 'px';
+    c.style.visibility = 'visible';
+    c.classList.toggle('no-anim', !anim);
+    c.style.transform = `translateX(${(i - current) * w}px)`;
+  });
+}
+
+function buildCarrusel(){
+  const dotsEl = document.getElementById('dots');
+  const outer = document.getElementById('cards-outer');
+  outer.innerHTML = '';
+  dotsEl.innerHTML = '';
+  current = 0;
+
+  perfil.tarjetas.forEach((t,i)=>{
+    const card = document.createElement('div');
+    card.className = `bank-card ${t.color}`;
+    card.setAttribute('data-idx', i);
+    card.innerHTML = `
+      <div class="card-bank-name" style="text-align:center;margin-bottom:16px">${t.nombre}</div>
+      <div class="card-lim-label">Límite total</div>
+      <div class="card-lim-val" id="lim-${i}">$${t.limite.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
+      <div class="card-use-row">
+        <span>Usado: <strong id="usado-${i}">$0.00</strong></span>
+        <span>Disponible: <strong id="disp-${i}">$${t.limite.toLocaleString('es-MX',{minimumFractionDigits:2})}</strong></span>
+      </div>
+      <div class="card-use-bar"><div class="card-use-fill" id="bar-${i}" style="width:0%"></div></div>
+      <div class="card-use-pct" id="pct-${i}">0% utilizado</div>
+      <div class="card-divider"></div>
+      <div class="card-corte-row">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Fecha de corte: Día ${t.corte}
+      </div>
+      <div class="card-stats-row">
+        <div class="card-stats-icon">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="18" y="3" width="4" height="18" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="2" y="14" width="4" height="7" rx="1"/></svg>
+        </div>
+        <div class="card-stats-info">
+          <div class="card-stats-gasto">Gasto por día: <span id="xdia-${i}">$0.00</span></div>
+        </div>
+      </div>`;
+    outer.appendChild(card);
+
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i===0?' active':'');
+    dot.onclick = ()=>goTo(i);
+    dotsEl.appendChild(dot);
+  });
+
+  setupSwipe();
+  setTimeout(()=>posicionarTarjetas(false), 50);
+}
+
 function setupSwipe(){
   const outer = document.getElementById('cards-outer');
   let sx=0, dx=0, isDragging=false;
 
-  function getW(){ return outer.offsetWidth; }
-  function move(idx, anim=true){
-    const inner = document.getElementById('cards-inner');
-    if(!inner) return;
-    inner.classList.toggle('no-anim', !anim);
-    inner.style.transform = `translateX(${-(idx * getW())}px)`;
-    document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
-  }
-
-  // Touch
   outer.addEventListener('touchstart', e=>{
     if(e.target.closest('button')) return;
     sx=e.touches[0].clientX; dx=0; isDragging=true;
   },{passive:true});
+
   outer.addEventListener('touchmove', e=>{
     if(!isDragging) return;
     dx = e.touches[0].clientX - sx;
-    const inner = document.getElementById('cards-inner');
-    if(inner) inner.style.transform = `translateX(${-(current*getW())+dx}px)`;
+    document.querySelectorAll('.bank-card').forEach((c,i)=>{
+      c.classList.add('no-anim');
+      c.style.transform = `translateX(${(i - current) * _cardW + dx}px)`;
+    });
   },{passive:true});
+
   outer.addEventListener('touchend', ()=>{
     if(!isDragging) return;
-    isDragging=false;
-    const n=perfil.tarjetas.length;
+    isDragging = false;
+    const n = perfil.tarjetas.length;
     if(dx < -50 && current < n-1) current++;
     else if(dx > 50 && current > 0) current--;
-    move(current, true);
-    renderMovimientos(); updateCards();
+    goTo(current);
   });
 
-  // Mouse
   outer.addEventListener('mousedown', e=>{
     if(e.target.closest('button')) return;
     sx=e.clientX; dx=0; isDragging=true; e.preventDefault();
@@ -804,21 +903,21 @@ function setupSwipe(){
   window.addEventListener('mousemove', e=>{
     if(!isDragging) return;
     dx = e.clientX - sx;
-    const inner = document.getElementById('cards-inner');
-    if(inner) inner.style.transform = `translateX(${-(current*getW())+dx}px)`;
+    document.querySelectorAll('.bank-card').forEach((c,i)=>{
+      c.classList.add('no-anim');
+      c.style.transform = `translateX(${(i - current) * _cardW + dx}px)`;
+    });
   });
   window.addEventListener('mouseup', ()=>{
     if(!isDragging) return;
-    isDragging=false;
-    const n=perfil.tarjetas.length;
+    isDragging = false;
+    const n = perfil.tarjetas.length;
     if(dx < -50 && current < n-1) current++;
     else if(dx > 50 && current > 0) current--;
-    move(current, true);
-    renderMovimientos(); updateCards();
+    goTo(current);
   });
-  window.addEventListener('resize', ()=>move(current, false));
 
-  goTo._move = move;
+  window.addEventListener('resize', ()=>posicionarTarjetas(false));
 }
 
 window.goTo = function(idx, animate=true){
@@ -826,23 +925,15 @@ window.goTo = function(idx, animate=true){
   const n = perfil.tarjetas.length;
   idx = Math.max(0, Math.min(idx, n-1));
   current = idx;
-  if(goTo._move) goTo._move(idx, animate);
-  else {
-    const inner = document.getElementById('cards-inner');
-    const outer = document.getElementById('cards-outer');
-    if(inner && outer){
-      inner.classList.toggle('no-anim', !animate);
-      inner.style.transform = `translateX(${-(idx*outer.offsetWidth)}px)`;
-    }
-  }
+  document.querySelectorAll('.bank-card').forEach((c,i)=>{
+    c.classList.toggle('no-anim', !animate);
+    c.style.transform = `translateX(${(i - current) * _cardW}px)`;
+  });
   document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
   renderMovimientos();
   updateCards();
 }
 
-
-// ── Tarjetas: datos ──────────────────────────────
-function fmt(n){ return '$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}) }
 
 function getPeriodo(corte){
   const d=today.getDate(),m=today.getMonth(),y=today.getFullYear();
@@ -1006,7 +1097,7 @@ async function eliminarPerfil(){
     mainApp.style.display = 'none';
 
     // Reset formulario
-    const cardsInner = document.getElementById('cards-inner');
+    const cardsInner = document.getElementById('cards-outer');
     if(cardsInner) cardsInner.innerHTML = '';
     document.getElementById('dots').innerHTML = '';
     document.getElementById('inp-nombre').value = '';
@@ -1076,46 +1167,124 @@ window.mostrarPantallaPerfiles = function(){
   renderPerfiles();
 }
 
-window.renderPerfiles = async function(){
-  const lista = document.getElementById('perfiles-lista');
-  lista.innerHTML = '<div style="text-align:center;color:#bbb;padding:20px">Cargando...</div>';
-  try {
-    const { getDocs, collection: col } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    // El perfil actual ya lo tenemos en memoria
-    if(!perfil){
-      lista.innerHTML = '<div style="text-align:center;color:#bbb;padding:20px">Sin perfiles guardados</div>';
-      return;
-    }
-    const colores = ['#1a2e5a','#5b21b6','#065f46','#92400e','#7f1d1d','#1e3a5f'];
-    lista.innerHTML = `
-      <div style="background:#fff;border-radius:16px;padding:18px;box-shadow:0 1px 6px rgba(0,0,0,0.08);margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-          <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#4f35b8,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:700;flex-shrink:0">
-            ${perfil.nombre.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <div style="font-size:16px;font-weight:700;color:#111">${perfil.nombre}</div>
+let modoEdicion = false;
 
-          </div>
-          <div style="margin-left:auto;background:#eef6ee;color:#2d7a2d;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px">Activo</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          ${perfil.tarjetas.map((t,i)=>`
-            <div style="background:#f4f5f9;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
-              <div style="width:10px;height:10px;border-radius:50%;background:${colores[i%colores.length]};flex-shrink:0"></div>
-              <div style="flex:1">
-                <div style="font-size:14px;font-weight:600;color:#111">${t.nombre}</div>
-                <div style="font-size:11px;color:#888">Corte día ${t.corte} · Límite $${t.limite.toLocaleString('es-MX')}</div>
-              </div>
-            </div>`).join('')}
-        </div>
-        <button onclick="abrirSettings()" style="margin-top:14px;width:100%;padding:10px;border-radius:10px;border:1.5px solid #ef4444;background:none;color:#ef4444;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
-          🗑 Eliminar perfil
-        </button>
-      </div>`;
-  } catch(err){
-    lista.innerHTML = '<div style="color:#ef4444;text-align:center;padding:20px">Error cargando perfiles</div>';
+window.renderPerfiles = function(){
+  const lista = document.getElementById('perfiles-lista');
+  if(!perfil){
+    lista.innerHTML = '<div style="text-align:center;color:#bbb;padding:20px">Sin perfiles guardados</div>';
+    return;
   }
+  const colores = ['#1a2e5a','#5b21b6','#065f46','#92400e','#7f1d1d','#1e3a5f'];
+
+  lista.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:18px;box-shadow:0 1px 6px rgba(0,0,0,0.08);margin-bottom:12px">
+
+      <!-- Header perfil -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#4f35b8,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:700;flex-shrink:0">
+          ${perfil.nombre.charAt(0).toUpperCase()}
+        </div>
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:700;color:#111">${perfil.nombre}</div>
+        </div>
+        <div style="background:#eef6ee;color:#2d7a2d;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px">Activo</div>
+        <button onclick="toggleEdicion()" style="background:${modoEdicion?'#7c3aed':'#f0eeff'};color:${modoEdicion?'#fff':'#7c3aed'};border:none;border-radius:10px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          ${modoEdicion ? '✓ Listo' : '✏️ Editar'}
+        </button>
+      </div>
+
+      <!-- Lista de tarjetas -->
+      <div style="display:flex;flex-direction:column;gap:8px" id="lista-tarjetas-edit">
+        ${perfil.tarjetas.map((t,i)=>`
+          <div style="background:#f4f5f9;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+            <div style="width:10px;height:10px;border-radius:50%;background:${colores[i%colores.length]};flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#111">${t.nombre}</div>
+              <div style="font-size:11px;color:#888">Corte día ${t.corte} · Límite $${t.limite.toLocaleString('es-MX')}</div>
+            </div>
+            ${modoEdicion ? `<button onclick="eliminarTarjetaPerfil('${t.id}')" style="background:#fee2e2;border:none;border-radius:8px;padding:6px 10px;color:#ef4444;font-size:13px;cursor:pointer">🗑</button>` : ''}
+          </div>`).join('')}
+      </div>
+
+      <!-- Formulario agregar tarjeta (solo en modo edición) -->
+      ${modoEdicion ? `
+      <div id="form-edit-tarjeta" style="margin-top:14px;background:#f4f5f9;border-radius:12px;padding:14px">
+        <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:12px">Agregar tarjeta</div>
+        <button onclick="abrirPopupBancoEdit()" class="banco-selector-btn" id="banco-edit-btn" style="margin-bottom:10px">
+          <span id="banco-edit-txt">Seleccionar banco...</span><span style="color:#aaa;font-size:12px">▾</span>
+        </button>
+        <button onclick="abrirPopupCorteEdit()" class="banco-selector-btn" id="corte-edit-btn" style="margin-bottom:10px">
+          <span id="corte-edit-txt">Seleccionar día de corte...</span><span style="color:#aaa;font-size:12px">▾</span>
+        </button>
+        <div style="position:relative;margin-bottom:10px">
+          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#666;font-size:15px">$</span>
+          <input id="limite-edit" type="number" placeholder="Límite de gasto" min="0" step="100"
+            style="width:100%;padding:12px 14px 12px 28px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:15px;font-family:inherit;outline:none;background:#fff"/>
+        </div>
+        <button onclick="guardarNuevaTarjeta()" style="width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#4f35b8,#7c3aed);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+          + Agregar tarjeta
+        </button>
+      </div>` : ''}
+
+      <!-- Botón eliminar perfil -->
+      <button onclick="abrirSettings()" style="margin-top:14px;width:100%;padding:10px;border-radius:10px;border:1.5px solid #ef4444;background:none;color:#ef4444;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+        🗑 Eliminar perfil
+      </button>
+    </div>`;
+}
+
+window.toggleEdicion = function(){
+  modoEdicion = !modoEdicion;
+  // Reset selección banco/corte al entrar en modo edición
+  selectedBancoEdit = '';
+  selectedCorteEdit = null;
+  renderPerfiles();
+}
+
+let selectedBancoEdit = '';
+let selectedCorteEdit = null;
+
+window.eliminarTarjetaPerfil = async function(id){
+  if(perfil.tarjetas.length <= 1){ showToast('Debe haber al menos una tarjeta'); return; }
+  perfil.tarjetas = perfil.tarjetas.filter(t=>t.id!==id);
+  try{
+    await setDoc(doc(db,'perfil','usuario'), perfil);
+    buildCarrusel();
+    showToast('Tarjeta eliminada');
+    renderPerfiles();
+  }catch(e){ showToast('❌ Error al eliminar'); }
+}
+
+window.guardarNuevaTarjeta = async function(){
+  const nombre = selectedBancoEdit || document.getElementById('banco-edit-input')?.value?.trim();
+  const corte  = selectedCorteEdit;
+  const limite = parseFloat(document.getElementById('limite-edit').value);
+  if(!nombre){ showToast('Selecciona un banco'); return; }
+  if(!corte){ showToast('Selecciona fecha de corte'); return; }
+  if(!limite||limite<=0){ showToast('Ingresa un límite válido'); return; }
+  const COLORS = ['card-color-0','card-color-1','card-color-2','card-color-3','card-color-4','card-color-5'];
+  const nueva = { id: Date.now()+'', nombre, corte, limite, color: COLORS[perfil.tarjetas.length % COLORS.length] };
+  perfil.tarjetas.push(nueva);
+  try{
+    await setDoc(doc(db,'perfil','usuario'), perfil);
+    buildCarrusel();
+    selectedBancoEdit = '';
+    selectedCorteEdit = null;
+    showToast('✓ Tarjeta agregada');
+    renderPerfiles();
+  }catch(e){ showToast('❌ Error al guardar'); }
+}
+
+window.abrirPopupBancoEdit = function(){
+  // Reusar el popup de banco del onboarding pero con callback diferente
+  window._bancoEditMode = true;
+  document.getElementById('banco-popup-overlay').classList.add('open');
+}
+
+window.abrirPopupCorteEdit = function(){
+  window._corteEditMode = true;
+  document.getElementById('corte-popup-overlay').classList.add('open');
 }
 
 
@@ -1199,6 +1368,7 @@ window.irDetalle = function(){
   const main = document.getElementById('main-app');
   main.style.display='flex';
   main.classList.add('visible');
+  setTimeout(()=>posicionarTarjetas(false), 50);
 }
 
 function cargarBancosFiltro(){
