@@ -79,10 +79,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .topbar-settings{position:absolute;right:20px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:4px}
 
 /* CARRUSEL */
-.cards-outer{position:relative;overflow:hidden;margin:0 16px}
-.bank-card{position:absolute;top:0;left:0;border-radius:20px;padding:22px;color:#fff;box-sizing:border-box;transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94)}
-.bank-card.no-anim{transition:none}
-#cards-outer{display:block}
+.cards-outer{
+  display:grid;
+  grid-auto-flow:column;
+  grid-auto-columns:100%;
+  overflow-x:scroll;
+  overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  border-radius:20px;
+  margin:0 16px;
+}
+.cards-outer::-webkit-scrollbar{display:none}
+.bank-card{
+  scroll-snap-align:start;
+  border-radius:20px;
+  padding:22px;
+  color:#fff;
+  box-sizing:border-box;
+  width:100%;
+}
 
 /* CSS tarjeta rediseñada */
 .card-top-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
@@ -469,7 +486,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <!-- Tarjeta banco -->
-    <div class="cards-outer" id="cards-outer"></div>
+    <div class="cards-outer" id="cards-outer">
+      <div class="cards-inner-wrap" id="cards-wrap"></div>
+    </div>
     <div class="dots" id="dots"></div>
 
     <!-- Nuevo gasto -->
@@ -735,33 +754,7 @@ function getOuterW(){
 }
 
 function posicionarTarjetas(anim=true){
-  const w = getOuterW();
-  if(w < 10) return;
-  _cardW = w;
-  const outer = document.getElementById('cards-outer');
-  const cards = document.querySelectorAll('.bank-card');
-
-  // Paso 1: medir altura con posición relativa temporal
-  cards.forEach(c=>{
-    c.style.position = 'relative';
-    c.style.width = w + 'px';
-    c.style.transform = '';
-    c.style.visibility = 'hidden';
-  });
-  const h = Math.max(300, ...Array.from(cards).map(c=>c.offsetHeight));
-  _cardH = h;
-
-  // Paso 2: posicionar absolutamente
-  if(outer) outer.style.height = h + 'px';
-  cards.forEach((c,i)=>{
-    c.style.position = 'absolute';
-    c.style.top = '0';
-    c.style.left = '0';
-    c.style.width = w + 'px';
-    c.style.visibility = 'visible';
-    c.classList.toggle('no-anim', !anim);
-    c.style.transform = `translateX(${(i - current) * w}px)`;
-  });
+  goTo(current, anim);
 }
 
 function buildCarrusel(){
@@ -807,7 +800,7 @@ function buildCarrusel(){
   });
 
   setupSwipe();
-  setTimeout(()=>posicionarTarjetas(false), 50);
+  setTimeout(()=>goTo(current, false), 50);
 }
 
 function setupSwipe(){
@@ -822,10 +815,8 @@ function setupSwipe(){
   outer.addEventListener('touchmove', e=>{
     if(!isDragging) return;
     dx = e.touches[0].clientX - sx;
-    document.querySelectorAll('.bank-card').forEach((c,i)=>{
-      c.classList.add('no-anim');
-      c.style.transform = `translateX(${(i - current) * _cardW + dx}px)`;
-    });
+    const wrap = document.getElementById('cards-wrap');
+    if(wrap){ wrap.classList.add('no-anim'); wrap.style.transform = `translateX(${-current*_cardW+dx}px)`; }
   },{passive:true});
 
   outer.addEventListener('touchend', ()=>{
@@ -844,10 +835,8 @@ function setupSwipe(){
   window.addEventListener('mousemove', e=>{
     if(!isDragging) return;
     dx = e.clientX - sx;
-    document.querySelectorAll('.bank-card').forEach((c,i)=>{
-      c.classList.add('no-anim');
-      c.style.transform = `translateX(${(i - current) * _cardW + dx}px)`;
-    });
+    const wrap = document.getElementById('cards-wrap');
+    if(wrap){ wrap.classList.add('no-anim'); wrap.style.transform = `translateX(${-current*_cardW+dx}px)`; }
   });
   window.addEventListener('mouseup', ()=>{
     if(!isDragging) return;
@@ -866,10 +855,11 @@ window.goTo = function(idx, animate=true){
   const n = perfil.tarjetas.length;
   idx = Math.max(0, Math.min(idx, n-1));
   current = idx;
-  document.querySelectorAll('.bank-card').forEach((c,i)=>{
-    c.classList.toggle('no-anim', !animate);
-    c.style.transform = `translateX(${(i - current) * _cardW}px)`;
-  });
+  const outer = document.getElementById('cards-outer');
+  if(outer){
+    const w = outer.offsetWidth;
+    outer.scrollTo({left: idx * w, behavior: animate ? 'smooth' : 'auto'});
+  }
   document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
   renderMovimientos();
   updateCards();
