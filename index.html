@@ -71,10 +71,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .corte-item.selected{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600}
 
 /* ── APP PRINCIPAL ── */
-.main-app{display:none;flex-direction:column;min-height:100vh}
-.main-app.visible{display:flex;flex-direction:column}
+.main-app{display:none;flex-direction:column;padding-bottom:0}
+.main-app.visible{display:block}
 .topbar{background:#f4f5f9;padding:16px 20px 8px;display:flex;align-items:center;justify-content:center;position:relative}
-.top-section{flex-shrink:0;background:#f4f5f9;contain:layout}
+.top-section{background:#f4f5f9}
 .topbar-title{font-size:20px;font-weight:700;color:#111;text-align:center}
 .topbar-settings{position:absolute;right:20px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:4px}
 
@@ -117,17 +117,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dot.active{background:#4f35b8;width:22px;border-radius:4px}
 
 /* BOTÓN */
-.save-wrap{padding:10px 20px}
+.save-wrap{padding:10px 20px 6px}
 .save-btn-main{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#4f35b8,#7c3aed);color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit}
 .save-btn-main:active{transform:scale(0.98)}
 
 /* MOVIMIENTOS */
-.mov-section{padding:0 20px 80px}
-.mov-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mov-section{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#f4f5f9;padding:12px 20px 24px;z-index:20;box-shadow:0 -4px 20px rgba(0,0,0,0.06)}
 .mov-title{font-size:16px;font-weight:700;color:#111}
-.ver-mas-btn{background:none;border:1.5px solid #7c3aed;color:#7c3aed;border-radius:20px;padding:5px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s}
-.ver-mas-btn:hover{background:#ede9fe}
-.ver-mas-btn.open{background:#7c3aed;color:#fff}
 .mov-item{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .mov-icon{width:38px;height:38px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .mov-info{flex:1;min-width:0}
@@ -423,11 +419,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <div class="mov-section">
-    <div class="mov-header">
-      <div class="mov-title">Últimos movimientos</div>
-      <button class="ver-mas-btn" id="ver-mas-btn" onclick="toggleMovimientos()">Ver más ▾</button>
-    </div>
-    <div id="mov-list" style="display:none"></div>
+    <div class="mov-title" style="margin-bottom:10px">Últimos movimientos</div>
+    <div id="mov-list" style="max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
   </div>
 </div>
 
@@ -452,7 +445,7 @@ let movimientos = [];
 let current = 0;
 let editingId = null;
 let deletingId = null;
-let movVisible = false;
+let movVisible = true;
 let tarjetasOb = [];       // tarjetas durante onboarding
 const today = new Date();
 const COLORS = ['card-color-0','card-color-1','card-color-2','card-color-3','card-color-4','card-color-5'];
@@ -634,8 +627,7 @@ async function iniciarApp(){
     movimientos = snap.docs.map(d=>({id:d.id,...d.data()}));
     updateCards();
     renderMovimientos();
-    const lista = document.getElementById('mov-list');
-    if(lista) lista.style.display = movVisible ? 'block' : 'none';
+
   });
   // Pequeño delay para asegurar que el carrusel esté construido antes del primer render
   setTimeout(()=>{ updateCards(); renderMovimientos(); }, 300);
@@ -802,8 +794,7 @@ function renderMovimientos(){
   const t = perfil.tarjetas[current];
   if(!t){ el.innerHTML=''; return; }
   const filtrados = movimientos.filter(m=>m.tarjetaId===t.id).slice(0,10);
-  // Mantener visibilidad actual de la lista
-  el.style.display = movVisible ? 'block' : 'none';
+
   if(!filtrados.length){ el.innerHTML=`<div class="empty-mov">Sin movimientos para ${t.nombre}</div>`; return; }
   el.innerHTML = filtrados.map(m=>`
     <div class="mov-item">
@@ -817,15 +808,7 @@ function renderMovimientos(){
     </div>`).join('');
 }
 
-window.toggleMovimientos = function(e){
-  if(e) e.stopPropagation();
-  movVisible=!movVisible;
-  const lista=document.getElementById('mov-list');
-  lista.style.display=movVisible?'block':'none';
-  const btn=document.getElementById('ver-mas-btn');
-  btn.textContent=movVisible?'Ver menos ▴':'Ver más ▾';
-  btn.classList.toggle('open',movVisible);
-}
+
 
 // ── Modal gasto ──────────────────────────────────
 window.openModal = function(){
@@ -867,11 +850,6 @@ window.guardar = async function(){
         tipo:'egreso', tarjetaId:t.id, banco:t.nombre, monto,
         fecha:now.toISOString().split('T')[0], creadoEn:now.getTime()
       });
-      // Abrir lista automáticamente para ver el nuevo movimiento
-      movVisible = true;
-      const verBtn = document.getElementById('ver-mas-btn');
-      verBtn.textContent = 'Ver menos ▴';
-      verBtn.classList.add('open');
       showToast('✓ Guardado en la nube');
     }
     document.getElementById('modal-overlay').classList.remove('open');
