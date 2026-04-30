@@ -1479,6 +1479,32 @@ window.setNavActive = function(id){
   const el = document.getElementById(id);
   if(el) el.classList.add('active');
 }
+
+// === FIX ELIMINAR ULTIMA TARJETA ===
+window._eliminarTarjetaPerfilOriginal = window.eliminarTarjetaPerfil;
+
+window.eliminarTarjetaPerfil = function(id){
+  if(perfil && perfil.tarjetas && perfil.tarjetas.length === 1){
+    window._deleteLastId = id;
+    document.getElementById('modal-eliminar-perfil').classList.add('open');
+    return;
+  }
+  if(window._eliminarTarjetaPerfilOriginal){
+    return window._eliminarTarjetaPerfilOriginal(id);
+  }
+}
+
+window.cerrarModalPerfil = function(e){
+  if(!e || e.target === document.getElementById('modal-eliminar-perfil')){
+    document.getElementById('modal-eliminar-perfil').classList.remove('open');
+  }
+}
+
+window.confirmarEliminarPerfil = async function(){
+  document.getElementById('modal-eliminar-perfil').classList.remove('open');
+  await eliminarPerfil();
+}
+
 </script>
 
 <!-- ══ NAVBAR INFERIOR ══ -->
@@ -1627,6 +1653,32 @@ window.guardarExt = async function(){
   }
 }
 
+
+// === FIX ELIMINAR ULTIMA TARJETA ===
+window._eliminarTarjetaPerfilOriginal = window.eliminarTarjetaPerfil;
+
+window.eliminarTarjetaPerfil = function(id){
+  if(perfil && perfil.tarjetas && perfil.tarjetas.length === 1){
+    window._deleteLastId = id;
+    document.getElementById('modal-eliminar-perfil').classList.add('open');
+    return;
+  }
+  if(window._eliminarTarjetaPerfilOriginal){
+    return window._eliminarTarjetaPerfilOriginal(id);
+  }
+}
+
+window.cerrarModalPerfil = function(e){
+  if(!e || e.target === document.getElementById('modal-eliminar-perfil')){
+    document.getElementById('modal-eliminar-perfil').classList.remove('open');
+  }
+}
+
+window.confirmarEliminarPerfil = async function(){
+  document.getElementById('modal-eliminar-perfil').classList.remove('open');
+  await eliminarPerfil();
+}
+
 </script>
 
 
@@ -1663,6 +1715,21 @@ window.guardarExt = async function(){
   </div>
 </div>
 
+
+
+<div class="modal-overlay" id="modal-eliminar-perfil" onclick="cerrarModalPerfil(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:10px 0 20px">
+      <div style="font-size:18px;font-weight:700;color:#111">¿Eliminar el perfil completo?</div>
+      <div style="font-size:13px;color:#666;margin-top:6px">Este es tu último banco</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="cerrarModalPerfil()" style="padding:13px;border-radius:12px;border:1.5px solid #e5e7eb;background:#fff;font-size:15px;font-weight:600;color:#666">Cancelar</button>
+      <button onclick="confirmarEliminarPerfil()" style="padding:13px;border-radius:12px;border:none;background:#ef4444;color:#fff;font-size:15px;font-weight:600">Eliminar</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
