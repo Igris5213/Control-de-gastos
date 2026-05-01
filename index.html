@@ -2138,8 +2138,8 @@ async function renderPromociones(){
         html += '<div style="font-size:12px;color:#888;margin-top:2px">' + (p.comercio?p.comercio+' · ':'') + (p.tarjeta||'') + '</div>';
         html += '</div>';
         html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;margin-bottom:10px">';
-        html += '<div style="background:#f5f5f5;border-radius:10px;padding:10px 6px"><div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:4px">Total</div><div style="font-size:14px;font-weight:700;color:#111">' + fmt(p.importe) + '</div></div>';
-        html += '<div style="background:#f5f5f5;border-radius:10px;padding:10px 6px"><div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:4px">Mensualidad</div><div style="font-size:14px;font-weight:700;color:#111">' + fmt(p.mensualidad) + '</div></div>';
+        html += '<div style="background:#fff;border-radius:10px;padding:10px 6px;box-shadow:0 1px 4px rgba(0,0,0,0.06)"><div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:4px">Total</div><div style="font-size:14px;font-weight:700;color:#111">' + fmt(p.importe) + '</div></div>';
+        html += '<div style="background:#fff;border-radius:10px;padding:10px 6px;box-shadow:0 1px 4px rgba(0,0,0,0.06)"><div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:4px">Mensualidad</div><div style="font-size:14px;font-weight:700;color:#111">' + fmt(p.mensualidad) + '</div></div>';
         html += '</div>';
         html += '<div style="background:#f0f0f0;border-radius:4px;height:5px;overflow:hidden;margin-bottom:8px"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,#111,#444);border-radius:4px"></div></div>';
         html += '<div style="display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-bottom:10px"><span>' + mesesTranscurridos + ' de ' + p.meses + ' meses</span><span>' + pct + '%</span></div>';
