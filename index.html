@@ -179,8 +179,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal-overlay.open .modal{transform:translateY(0)}
 /* Date Picker */
 #scroll-anio::-webkit-scrollbar,#scroll-mes::-webkit-scrollbar,#scroll-dia::-webkit-scrollbar{display:none}
-.scroll-item{height:60px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#ccc;cursor:pointer;scroll-snap-align:center;transition:color 0.2s,font-size 0.2s}
-.scroll-item.sel{color:#111;font-size:22px;font-weight:700}
+.scroll-item{height:44px;min-height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#888;cursor:pointer;scroll-snap-align:start;transition:color 0.15s;width:100%;text-align:center}
+.scroll-item.sel{color:#fff !important;font-size:17px;font-weight:700}
+#scroll-meses-cont::-webkit-scrollbar{display:none}
 .modal-handle{width:40px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px}
 .modal-title{font-size:18px;font-weight:700;color:#111;margin-bottom:20px}
 .field-label{font-size:13px;color:#666;margin-bottom:6px;font-weight:500}
@@ -1966,6 +1967,7 @@ window.abrirModalPromo = function(){
   document.getElementById('promo-tarjeta-txt').textContent = 'Seleccionar tarjeta...';
   document.getElementById('promo-tarjeta-wrap').style.display = 'none';
   document.getElementById('promo-nombre').value = '';
+  document.getElementById('promo-comercio').value = '';
   document.getElementById('promo-importe').value = '';
   document.getElementById('promo-meses').value = '';
   document.getElementById('promo-meses-txt').textContent = 'Seleccionar meses...';
@@ -2037,13 +2039,19 @@ window.abrirScrollMeses = function(){
   const cont = document.getElementById('scroll-meses-items');
   const current = parseInt(document.getElementById('promo-meses').value) || 3;
   cont.innerHTML = Array.from({length:24},(_,i)=>i+1).map(n=>`
-    <div class="scroll-item${n===current?' sel':''}" data-m="${n}" style="${n===current?'color:#fff;':''}">${n} ${n===1?'mes':'meses'}</div>
+    <div class="scroll-item${n===current?' sel':''}" data-m="${n}" style="width:100%;text-align:center;${n===current?'color:#fff;':''}">${n} ${n===1?'mes':'meses'}</div>
   `).join('');
   wrap.style.display = 'block';
   // Scroll al seleccionado
   const scrollCont = document.getElementById('scroll-meses-cont');
   setTimeout(()=>{
     scrollCont.scrollTop = (current-1)*44;
+    // Forzar centrado del item inicial
+    cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+      const sel = i===(current-1);
+      el.classList.toggle('sel', sel);
+      el.style.color = sel ? '#fff' : '';
+    });
   }, 50);
   // Listener
   scrollCont.onscroll = ()=>{
@@ -2071,11 +2079,12 @@ window.guardarPromo = async function(){
   if(!meses){ showToast('Selecciona los meses'); return; }
 
   const t = (perfil?.tarjetas||[]).find(x=>x.id===promoTarjetaSel);
+  const comercio = document.getElementById('promo-comercio').value.trim();
   const datos = {
     tarjetaId: promoTarjetaSel,
     banco: promoBancoSel,
     tarjeta: t?.apodo||t?.nombre||'',
-    nombre, importe, meses,
+    nombre, comercio, importe, meses,
     mensualidad: importe/meses,
     creadoEn: Date.now()
   };
@@ -2116,7 +2125,7 @@ async function renderPromociones(){
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
           <div>
             <div style="font-size:15px;font-weight:700;color:#111">${p.nombre}</div>
-            <div style="font-size:12px;color:#888;margin-top:2px">${p.banco}${p.tarjeta?' · '+p.tarjeta:''}</div>
+            <div style="font-size:12px;color:#888;margin-top:2px">${p.comercio?p.comercio+' · ':''}${p.banco}${p.tarjeta?' · '+p.tarjeta:''}</div>
           </div>
           <button onclick="eliminarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#aaa;padding:4px">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
@@ -2295,9 +2304,15 @@ window.confirmarEliminarPerfil = async function(){
       </button>
     </div>
 
-    <!-- Nombre de la compra -->
+    <!-- Comercio -->
     <div class="field-wrap">
-      <div class="field-label">Nombre de la compra</div>
+      <div class="field-label">Comercio</div>
+      <input class="inp" id="promo-comercio" placeholder="Ej. Liverpool, Costco, Walmart..." maxlength="50"/>
+    </div>
+
+    <!-- Compra -->
+    <div class="field-wrap">
+      <div class="field-label">Compra</div>
       <input class="inp" id="promo-nombre" placeholder="Ej. iPhone, Televisión, Refrigerador..." maxlength="50"/>
     </div>
 
@@ -2322,15 +2337,18 @@ window.confirmarEliminarPerfil = async function(){
     </div>
 
     <!-- Scroll selector de meses -->
-    <div id="meses-scroll-wrap" style="display:none;margin-top:-8px;margin-bottom:8px;background:#f5f5f5;border-radius:14px;padding:12px;position:relative">
-      <div style="font-size:11px;font-weight:700;color:#888;text-align:center;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Desliza para seleccionar</div>
-      <!-- Línea central -->
-      <div style="position:absolute;left:16px;right:16px;top:50%;transform:translateY(4px);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
-      <div id="scroll-meses-cont" style="height:140px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;position:relative;z-index:2">
-        <div style="height:48px"></div>
-        <div id="scroll-meses-items"></div>
-        <div style="height:48px"></div>
+    <div id="meses-scroll-wrap" style="display:none;margin-top:-8px;margin-bottom:8px;border-radius:14px;overflow:hidden;position:relative;background:#f5f5f5">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-align:center;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Desliza para seleccionar</div>
+      <div style="position:relative;height:132px">
+        <!-- Recuadro negro centrado -->
+        <div style="position:absolute;left:12px;right:12px;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
+        <div id="scroll-meses-cont" style="position:absolute;inset:0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+          <div style="height:44px"></div>
+          <div id="scroll-meses-items" style="width:100%"></div>
+          <div style="height:44px"></div>
+        </div>
       </div>
+      <div style="height:8px"></div>
     </div>
 
     <!-- Botones -->
