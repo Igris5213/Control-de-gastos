@@ -2151,6 +2151,84 @@ async function renderPromociones(){
   }catch(e){ lista.innerHTML = `<div style="text-align:center;color:#bbb;padding:24px">Error al cargar</div>`; }
 }
 
+window.abrirEditarPromo = async function(id){
+  try{
+    const snap = await getDocs(query(collection(db,'promociones')));
+    const p = snap.docs.map(d=>({id:d.id,...d.data()})).find(x=>x.id===id);
+    if(!p) return;
+    // Cerrar modal detalle
+    document.getElementById('modal-detalle-promo').classList.remove('open');
+    // Precargar datos en modal editar
+    document.getElementById('edit-promo-id').value = p.id;
+    document.getElementById('edit-promo-importe').value = p.importe;
+    document.getElementById('edit-promo-meses-txt').textContent = p.meses + (p.meses===1?' mes':' meses');
+    document.getElementById('edit-promo-meses-txt').style.color = '#111';
+    document.getElementById('edit-promo-meses').value = p.meses;
+    document.getElementById('edit-promo-nombre').textContent = p.nombre;
+    // Abrir modal
+    document.getElementById('modal-edit-promo').classList.add('open');
+    // Construir scroll de meses
+    buildScrollMesesEdit(p.meses);
+  }catch(e){ showToast('❌ Error'); }
+}
+
+function buildScrollMesesEdit(current){
+  const wrap = document.getElementById('edit-meses-scroll-wrap');
+  const cont = document.getElementById('edit-scroll-meses-items');
+  cont.innerHTML = Array.from({length:24},(_,i)=>i+1).map(n=>`
+    <div class="scroll-item${n===current?' sel':''}" data-m="${n}" style="${n===current?'color:#fff;':''}">${n} ${n===1?'mes':'meses'}</div>
+  `).join('');
+  const scrollCont = document.getElementById('edit-scroll-meses-cont');
+  setTimeout(()=>{
+    scrollCont.scrollTop = (current-1)*44;
+    cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+      const sel = i===(current-1);
+      el.classList.toggle('sel', sel);
+      el.style.color = sel ? '#fff' : '';
+    });
+  }, 50);
+  scrollCont.onscroll = ()=>{
+    const idx = Math.round(scrollCont.scrollTop/44);
+    const meses = Math.min(24, Math.max(1, idx+1));
+    cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+      const sel = i===idx;
+      el.classList.toggle('sel', sel);
+      el.style.color = sel ? '#fff' : '';
+    });
+    document.getElementById('edit-promo-meses').value = meses;
+    document.getElementById('edit-promo-meses-txt').textContent = meses + (meses===1?' mes':' meses');
+  };
+}
+
+window.abrirScrollMesesEdit = function(){
+  const wrap = document.getElementById('edit-meses-scroll-wrap');
+  const isOpen = wrap.style.display === 'block';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    const current = parseInt(document.getElementById('edit-promo-meses').value) || 3;
+    buildScrollMesesEdit(current);
+  }
+}
+
+window.cerrarEditPromo = function(e){
+  if(!e || e.target===document.getElementById('modal-edit-promo'))
+    document.getElementById('modal-edit-promo').classList.remove('open');
+}
+
+window.guardarEditPromo = async function(){
+  const id = document.getElementById('edit-promo-id').value;
+  const importe = parseFloat(document.getElementById('edit-promo-importe').value);
+  const meses = parseInt(document.getElementById('edit-promo-meses').value);
+  if(!importe||importe<=0){ showToast('Ingresa el importe'); return; }
+  if(!meses){ showToast('Selecciona los meses'); return; }
+  try{
+    await updateDoc(doc(db,'promociones',id),{ importe, meses, mensualidad: importe/meses });
+    document.getElementById('modal-edit-promo').classList.remove('open');
+    showSuccess('Promoción actualizada','Los cambios fueron guardados');
+    renderPromociones();
+  }catch(e){ showToast('❌ Error al guardar'); }
+}
+
 window.cerrarDetallePromo = function(e){
   if(!e || e.target===document.getElementById('modal-detalle-promo'))
     document.getElementById('modal-detalle-promo').classList.remove('open');
@@ -2240,11 +2318,21 @@ window.verPromo = async function(id){
         <div style="font-size:11px;color:#aaa;text-align:center;margin-top:4px">${pct}% completado</div>
       </div>
 
-      <!-- Botón eliminar -->
-      <button onclick="pedirConfirmEliminarPromo('${p.id}')"
-        style="width:100%;padding:12px;border-radius:12px;background:none;border:1.5px solid #e0e0e0;color:#888;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
-        Eliminar promoción
-      </button>
+      <!-- Botones acción -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+        <button onclick="pedirConfirmEliminarPromo('${p.id}')"
+          style="padding:11px 6px;border-radius:12px;background:linear-gradient(180deg,#333,#666);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          Eliminar
+        </button>
+        <button onclick="abrirEditarPromo('${p.id}')"
+          style="padding:11px 6px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          Editar
+        </button>
+        <button onclick="cerrarDetallePromo()"
+          style="padding:11px 6px;border-radius:12px;border:1.5px solid #e0e0e0;background:#fff;color:#111;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          Cerrar
+        </button>
+      </div>
     `;
     document.getElementById('modal-detalle-promo').classList.add('open');
   }catch(e){ showToast('❌ Error al cargar'); }
@@ -2984,6 +3072,56 @@ window.confirmarEliminarPerfil = async function(){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button onclick="cerrarConfirmPromo()" style="padding:13px;border-radius:12px;border:1.5px solid #e0e0e0;background:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#111">Cancelar</button>
       <button onclick="confirmarEliminarPromo()" style="padding:13px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar promoción -->
+<div class="modal-overlay" id="modal-edit-promo" onclick="cerrarEditPromo(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar promoción</div>
+    <div style="font-size:14px;font-weight:600;color:#888;margin:-14px 0 16px" id="edit-promo-nombre"></div>
+    <input type="hidden" id="edit-promo-id"/>
+    <input type="hidden" id="edit-promo-meses"/>
+
+    <!-- Importe -->
+    <div class="field-wrap">
+      <div class="field-label">Importe total</div>
+      <div class="amount-wrap">
+        <span class="amount-prefix">$</span>
+        <input class="amount-inp" id="edit-promo-importe" type="number" placeholder="0.00" min="0" step="1" inputmode="decimal"/>
+      </div>
+    </div>
+
+    <!-- Meses -->
+    <div class="field-wrap">
+      <div class="field-label">Meses sin intereses</div>
+      <div onclick="abrirScrollMesesEdit()" id="edit-promo-meses-display"
+        style="padding:12px 14px;border-radius:12px;border:1.5px solid #e0e0e0;font-size:15px;cursor:pointer;color:#999;display:flex;justify-content:space-between;align-items:center;background:#fff">
+        <span id="edit-promo-meses-txt">Seleccionar meses...</span>
+        <span style="color:#aaa;font-size:12px">▾</span>
+      </div>
+    </div>
+
+    <!-- Scroll meses editar -->
+    <div id="edit-meses-scroll-wrap" style="display:none;margin-top:-8px;margin-bottom:8px;background:#f5f5f5;border-radius:14px;overflow:hidden;position:relative">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-align:center;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Desliza para seleccionar</div>
+      <div style="position:relative;height:132px">
+        <div style="position:absolute;left:12px;right:12px;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
+        <div id="edit-scroll-meses-cont" style="position:absolute;inset:0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+          <div style="height:44px"></div>
+          <div id="edit-scroll-meses-items" style="width:100%"></div>
+          <div style="height:44px"></div>
+        </div>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+
+    <!-- Botones -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <button onclick="cerrarEditPromo()" style="padding:13px;border-radius:12px;border:1.5px solid #e0e0e0;background:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#111">Cancelar</button>
+      <button onclick="guardarEditPromo()" class="modal-save" style="margin-top:0">Guardar</button>
     </div>
   </div>
 </div>
