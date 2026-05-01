@@ -605,7 +605,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBYKluSaB9AJw3WIQg1V2VYQqWoNJ4Pzk4",
@@ -1944,6 +1944,202 @@ window.resaltarMov = function(el){
   setTimeout(()=>el.classList.remove('selected'), 2000);
 }
 
+// ── PROMOCIONES ─────────────────────────────────────────────────
+let promoBancoSel = '';
+let promoTarjetaSel = null;
+
+window.irPromociones = function(){
+  if(typeof modoEdicion !== 'undefined' && modoEdicion){ modoEdicion=false; buildCarrusel(); }
+  document.getElementById('main-app').style.display = 'none';
+  document.querySelectorAll('.screen').forEach(s=>{ s.classList.add('hidden'); s.style.display='none'; });
+  const scr = document.getElementById('screen-promociones');
+  scr.classList.remove('hidden');
+  scr.style.display = 'flex';
+  renderPromociones();
+}
+
+window.abrirModalPromo = function(){
+  promoBancoSel = '';
+  promoTarjetaSel = null;
+  document.getElementById('promo-banco-txt').textContent = 'Seleccionar banco...';
+  document.getElementById('promo-banco-btn').classList.remove('selected');
+  document.getElementById('promo-tarjeta-txt').textContent = 'Seleccionar tarjeta...';
+  document.getElementById('promo-tarjeta-wrap').style.display = 'none';
+  document.getElementById('promo-nombre').value = '';
+  document.getElementById('promo-importe').value = '';
+  document.getElementById('promo-meses').value = '';
+  document.getElementById('promo-meses-txt').textContent = 'Seleccionar meses...';
+  document.getElementById('promo-meses-txt').style.color = '#999';
+  document.getElementById('meses-scroll-wrap').style.display = 'none';
+  document.getElementById('modal-promo-overlay').classList.add('open');
+}
+
+window.cerrarModalPromo = function(e){
+  if(!e || e.target===document.getElementById('modal-promo-overlay'))
+    document.getElementById('modal-promo-overlay').classList.remove('open');
+}
+
+window.abrirPopupBancoPromo = function(){
+  const lista = document.getElementById('banco-promo-lista');
+  const bancos = [...new Set((perfil?.tarjetas||[]).map(t=>t.nombre))];
+  lista.innerHTML = bancos.map(b=>`
+    <div class="banco-popup-item${b===promoBancoSel?' active':''}" onclick="selBancoPromo('${b}')">
+      <div class="banco-check${b===promoBancoSel?' checked':''}">✓</div>
+      <span style="margin-left:12px">${b}</span>
+    </div>`).join('');
+  document.getElementById('banco-promo-popup').classList.add('open');
+}
+
+window.cerrarBancoPromoPopup = function(e){
+  if(!e || e.target===document.getElementById('banco-promo-popup'))
+    document.getElementById('banco-promo-popup').classList.remove('open');
+}
+
+window.selBancoPromo = function(nombre){
+  promoBancoSel = nombre;
+  promoTarjetaSel = null;
+  document.getElementById('promo-banco-txt').textContent = nombre;
+  document.getElementById('promo-banco-btn').classList.add('selected');
+  document.getElementById('promo-tarjeta-txt').textContent = 'Seleccionar tarjeta...';
+  document.getElementById('promo-tarjeta-wrap').style.display = 'block';
+  document.getElementById('banco-promo-popup').classList.remove('open');
+}
+
+window.abrirPopupTarjetaPromo = function(){
+  const tarjetas = (perfil?.tarjetas||[]).filter(t=>t.nombre===promoBancoSel);
+  const lista = document.getElementById('tarjeta-promo-lista');
+  lista.innerHTML = tarjetas.map(t=>`
+    <div class="banco-popup-item${promoTarjetaSel===t.id?' active':''}" onclick="selTarjetaPromo('${t.id}')">
+      <div class="banco-check${promoTarjetaSel===t.id?' checked':''}">✓</div>
+      <span style="margin-left:12px">${t.apodo||t.nombre}</span>
+    </div>`).join('');
+  document.getElementById('tarjeta-promo-popup').classList.add('open');
+}
+
+window.cerrarTarjetaPromoPopup = function(e){
+  if(!e || e.target===document.getElementById('tarjeta-promo-popup'))
+    document.getElementById('tarjeta-promo-popup').classList.remove('open');
+}
+
+window.selTarjetaPromo = function(id){
+  promoTarjetaSel = id;
+  const t = (perfil?.tarjetas||[]).find(x=>x.id===id);
+  document.getElementById('promo-tarjeta-txt').textContent = t?.apodo||t?.nombre||id;
+  document.getElementById('promo-tarjeta-btn').classList.add('selected');
+  document.getElementById('tarjeta-promo-popup').classList.remove('open');
+}
+
+window.abrirScrollMeses = function(){
+  const wrap = document.getElementById('meses-scroll-wrap');
+  const isOpen = wrap.style.display === 'block';
+  if(isOpen){ wrap.style.display='none'; return; }
+  // Construir items 1-24
+  const cont = document.getElementById('scroll-meses-items');
+  const current = parseInt(document.getElementById('promo-meses').value) || 3;
+  cont.innerHTML = Array.from({length:24},(_,i)=>i+1).map(n=>`
+    <div class="scroll-item${n===current?' sel':''}" data-m="${n}" style="${n===current?'color:#fff;':''}">${n} ${n===1?'mes':'meses'}</div>
+  `).join('');
+  wrap.style.display = 'block';
+  // Scroll al seleccionado
+  const scrollCont = document.getElementById('scroll-meses-cont');
+  setTimeout(()=>{
+    scrollCont.scrollTop = (current-1)*44;
+  }, 50);
+  // Listener
+  scrollCont.onscroll = ()=>{
+    const idx = Math.round(scrollCont.scrollTop/44);
+    const meses = Math.min(24, Math.max(1, idx+1));
+    cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+      const sel = i===idx;
+      el.classList.toggle('sel', sel);
+      el.style.color = sel ? '#fff' : '';
+    });
+    document.getElementById('promo-meses').value = meses;
+    document.getElementById('promo-meses-txt').textContent = meses + (meses===1?' mes':' meses');
+    document.getElementById('promo-meses-txt').style.color = '#111';
+  };
+}
+
+window.guardarPromo = async function(){
+  if(!promoBancoSel){ showToast('Selecciona un banco'); return; }
+  if(!promoTarjetaSel){ showToast('Selecciona una tarjeta'); return; }
+  const nombre = document.getElementById('promo-nombre').value.trim();
+  if(!nombre){ showToast('Ingresa el nombre de la compra'); return; }
+  const importe = parseFloat(document.getElementById('promo-importe').value);
+  if(!importe||importe<=0){ showToast('Ingresa el importe'); return; }
+  const meses = parseInt(document.getElementById('promo-meses').value);
+  if(!meses){ showToast('Selecciona los meses'); return; }
+
+  const t = (perfil?.tarjetas||[]).find(x=>x.id===promoTarjetaSel);
+  const datos = {
+    tarjetaId: promoTarjetaSel,
+    banco: promoBancoSel,
+    tarjeta: t?.apodo||t?.nombre||'',
+    nombre, importe, meses,
+    mensualidad: importe/meses,
+    creadoEn: Date.now()
+  };
+
+  try{
+    await addDoc(collection(db,'promociones'), datos);
+    document.getElementById('modal-promo-overlay').classList.remove('open');
+    showSuccess('Promoción guardada', `${nombre} — ${meses} meses sin intereses`);
+    renderPromociones();
+  }catch(e){ showToast('❌ Error al guardar'); }
+}
+
+window.eliminarPromo = async function(id){
+  try{
+    await deleteDoc(doc(db,'promociones',id));
+    renderPromociones();
+    showToast('Promoción eliminada');
+  }catch(e){ showToast('❌ Error'); }
+}
+
+async function renderPromociones(){
+  const lista = document.getElementById('promociones-lista');
+  if(!lista) return;
+  try{
+    const snap = await getDocs(query(collection(db,'promociones'), orderBy('creadoEn','desc')));
+    const promos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(!promos.length){
+      lista.innerHTML = `<div style="text-align:center;padding:48px 20px;color:#bbb;font-size:14px">
+        <svg width="40" height="40" fill="none" stroke="#ccc" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:12px;display:block;margin-left:auto;margin-right:auto">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+        Sin promociones registradas</div>`;
+      return;
+    }
+    lista.innerHTML = promos.map(p=>`
+      <div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#111">${p.nombre}</div>
+            <div style="font-size:12px;color:#888;margin-top:2px">${p.banco}${p.tarjeta?' · '+p.tarjeta:''}</div>
+          </div>
+          <button onclick="eliminarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#aaa;padding:4px">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+          <div style="background:#f5f5f5;border-radius:10px;padding:10px 6px">
+            <div style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:4px">Total</div>
+            <div style="font-size:14px;font-weight:700;color:#111">${fmt(p.importe)}</div>
+          </div>
+          <div style="background:#f5f5f5;border-radius:10px;padding:10px 6px">
+            <div style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:4px">Meses</div>
+            <div style="font-size:14px;font-weight:700;color:#111">${p.meses}</div>
+          </div>
+          <div style="background:linear-gradient(180deg,#111,#444);border-radius:10px;padding:10px 6px">
+            <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;margin-bottom:4px">Mensual</div>
+            <div style="font-size:14px;font-weight:700;color:#fff">${fmt(p.mensualidad)}</div>
+          </div>
+        </div>
+      </div>`).join('');
+  }catch(e){ lista.innerHTML = `<div style="text-align:center;color:#bbb;padding:24px">Error al cargar</div>`; }
+}
+
 window.setNavActive = function(id){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const el = document.getElementById(id);
@@ -2048,8 +2244,120 @@ window.confirmarEliminarPerfil = async function(){
     <span>Perfiles</span>
   </button>
 
+  <button class="nav-item" id="nav-promociones" onclick="setNavActive('nav-promociones'); irPromociones()">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+      <line x1="7" y1="7" x2="7.01" y2="7"/>
+    </svg>
+    <span>Promociones</span>
+  </button>
+
 </div>
 
+
+<!-- ══ PANTALLA PROMOCIONES ══ -->
+<div class="screen hidden" id="screen-promociones">
+  <div style="width:100%;max-width:390px;padding:0 4px">
+
+    <!-- Botón agregar -->
+    <button onclick="abrirModalPromo()" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nueva promoción
+    </button>
+
+    <!-- Lista de promociones -->
+    <div id="promociones-lista"></div>
+
+  </div>
+</div>
+
+<!-- ══ MODAL NUEVA PROMOCIÓN ══ -->
+<div class="modal-overlay" id="modal-promo-overlay" onclick="cerrarModalPromo(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nueva promoción MSI</div>
+
+    <!-- Banco -->
+    <div class="field-wrap">
+      <div class="field-label">Banco</div>
+      <button class="banco-selector-btn" id="promo-banco-btn" onclick="abrirPopupBancoPromo()">
+        <span id="promo-banco-txt">Seleccionar banco...</span>
+        <span style="color:#aaa;font-size:12px">▾</span>
+      </button>
+    </div>
+
+    <!-- Tarjeta -->
+    <div class="field-wrap" id="promo-tarjeta-wrap" style="display:none">
+      <div class="field-label">Tarjeta</div>
+      <button class="banco-selector-btn" id="promo-tarjeta-btn" onclick="abrirPopupTarjetaPromo()">
+        <span id="promo-tarjeta-txt">Seleccionar tarjeta...</span>
+        <span style="color:#aaa;font-size:12px">▾</span>
+      </button>
+    </div>
+
+    <!-- Nombre de la compra -->
+    <div class="field-wrap">
+      <div class="field-label">Nombre de la compra</div>
+      <input class="inp" id="promo-nombre" placeholder="Ej. iPhone, Televisión, Refrigerador..." maxlength="50"/>
+    </div>
+
+    <!-- Importe -->
+    <div class="field-wrap">
+      <div class="field-label">Importe total</div>
+      <div class="amount-wrap">
+        <span class="amount-prefix">$</span>
+        <input class="amount-inp" id="promo-importe" type="number" placeholder="0.00" min="0" step="1" inputmode="decimal"/>
+      </div>
+    </div>
+
+    <!-- Meses -->
+    <div class="field-wrap">
+      <div class="field-label">Meses sin intereses</div>
+      <div onclick="abrirScrollMeses()" id="promo-meses-display"
+        style="padding:12px 14px;border-radius:12px;border:1.5px solid #e0e0e0;font-size:15px;cursor:pointer;color:#999;display:flex;justify-content:space-between;align-items:center;background:#fff">
+        <span id="promo-meses-txt">Seleccionar meses...</span>
+        <span style="color:#aaa;font-size:12px">▾</span>
+      </div>
+      <input type="hidden" id="promo-meses" value=""/>
+    </div>
+
+    <!-- Scroll selector de meses -->
+    <div id="meses-scroll-wrap" style="display:none;margin-top:-8px;margin-bottom:8px;background:#f5f5f5;border-radius:14px;padding:12px;position:relative">
+      <div style="font-size:11px;font-weight:700;color:#888;text-align:center;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Desliza para seleccionar</div>
+      <!-- Línea central -->
+      <div style="position:absolute;left:16px;right:16px;top:50%;transform:translateY(4px);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
+      <div id="scroll-meses-cont" style="height:140px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;position:relative;z-index:2">
+        <div style="height:48px"></div>
+        <div id="scroll-meses-items"></div>
+        <div style="height:48px"></div>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <button onclick="cerrarModalPromo()" style="padding:13px;border-radius:12px;border:1.5px solid #e0e0e0;background:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#111">Cancelar</button>
+      <button onclick="guardarPromo()" class="modal-save" style="margin-top:0">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Popup banco promo -->
+<div class="modal-overlay" id="banco-promo-popup" onclick="cerrarBancoPromoPopup(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:700;color:#111;margin-bottom:16px">Seleccionar banco</div>
+    <div id="banco-promo-lista" class="banco-popup-list"></div>
+  </div>
+</div>
+
+<!-- Popup tarjeta promo -->
+<div class="modal-overlay" id="tarjeta-promo-popup" onclick="cerrarTarjetaPromoPopup(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:700;color:#111;margin-bottom:16px">Seleccionar tarjeta</div>
+    <div id="tarjeta-promo-lista" class="banco-popup-list"></div>
+  </div>
+</div>
 
 <!-- ══ MODAL EXTEMPORANEO ══ -->
 <div class="modal-overlay" id="modal-ext-overlay" onclick="closeModalExtOut(event)">
