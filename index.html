@@ -127,6 +127,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-color-3{background:linear-gradient(135deg,#92400e,#d97706)}
 .card-color-4{background:linear-gradient(135deg,#7f1d1d,#dc2626)}
 .card-color-5{background:linear-gradient(135deg,#1e3a5f,#2563eb)}
+.card-color-invex{background:linear-gradient(135deg,#7a0026,#c0003a)}
+.card-color-bbva{background:linear-gradient(135deg,#00205b,#0d3291)}
+.card-color-santander{background:linear-gradient(135deg,#cc0000,#ff1a1a)}
 
 /* DOTS */
 .dots{display:flex;justify-content:center;gap:7px;margin:14px 0 6px}
@@ -689,7 +692,9 @@ window.agregarTarjetaOb = function(){
   if(!limite||limite<=0){ document.getElementById('inp-limite-ob').focus(); return; }
 
   const apodo = document.getElementById('inp-apodo-ob').value.trim();
-  tarjetasOb.push({ id: Date.now()+'_'+Math.random().toString(36).substr(2,9), nombre, apodo, corte, limite, color: COLORS[tarjetasOb.length % COLORS.length] });
+  const colorMapaOb = {'Invex':'card-color-invex','BBVA':'card-color-bbva','Santander':'card-color-santander'};
+  const colorOb = colorMapaOb[nombre] || COLORS[tarjetasOb.length % COLORS.length];
+  tarjetasOb.push({ id: Date.now()+'_'+Math.random().toString(36).substr(2,9), nombre, apodo, corte, limite, color: colorOb });
   renderTarjetasOb();
 
   // Reset
@@ -1335,7 +1340,9 @@ window.guardarNuevaTarjeta = async function(){
   if(!limite||limite<=0){ showToast('Ingresa un límite válido'); return; }
   const COLORS = ['card-color-0','card-color-1','card-color-2','card-color-3','card-color-4','card-color-5'];
   const apodoNueva = (document.getElementById('apodo-nueva-edit') ? document.getElementById('apodo-nueva-edit').value.trim() : '') || '';
-  const nueva = { id: Date.now()+'_'+Math.random().toString(36).substr(2,9), nombre, apodo:apodoNueva, corte, limite, color: COLORS[perfil.tarjetas.length % COLORS.length] };
+  const colorMapa = {'Invex':'card-color-invex','BBVA':'card-color-bbva','Santander':'card-color-santander'};
+  const colorNueva = colorMapa[nombre] || COLORS[perfil.tarjetas.length % COLORS.length];
+  const nueva = { id: Date.now()+'_'+Math.random().toString(36).substr(2,9), nombre, apodo:apodoNueva, corte, limite, color: colorNueva };
   perfil.tarjetas.push(nueva);
   try{
     await setDoc(doc(db,'perfil','usuario'), perfil);
