@@ -2120,33 +2120,110 @@ async function renderPromociones(){
         Sin promociones registradas</div>`;
       return;
     }
-    lista.innerHTML = promos.map(p=>`
+    lista.innerHTML = promos.map(p=>{
+      // Calcular meses transcurridos desde creadoEn
+      const mesesTranscurridos = Math.min(p.meses, Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
+      const mesesFaltantes = p.meses - mesesTranscurridos;
+      const importePagado = p.mensualidad * mesesTranscurridos;
+      const importeFaltante = p.importe - importePagado;
+      return `
       <div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07)">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
-          <div>
-            <div style="font-size:15px;font-weight:700;color:#111">${p.nombre}</div>
-            <div style="font-size:12px;color:#888;margin-top:2px">${p.comercio?p.comercio+' · ':''}${p.banco}${p.tarjeta?' · '+p.tarjeta:''}</div>
-          </div>
-          <button onclick="eliminarPromo('${p.id}')" style="background:none;border:none;cursor:pointer;color:#aaa;padding:4px">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-          </button>
+        <div style="margin-bottom:12px">
+          <div style="font-size:16px;font-weight:700;color:#111">${p.nombre}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${p.comercio?p.comercio+' · ':''}${p.banco}${p.tarjeta?' · '+p.tarjeta:''}</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;margin-bottom:10px">
           <div style="background:#f5f5f5;border-radius:10px;padding:10px 6px">
-            <div style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:4px">Total</div>
+            <div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:4px">Total</div>
             <div style="font-size:14px;font-weight:700;color:#111">${fmt(p.importe)}</div>
           </div>
           <div style="background:#f5f5f5;border-radius:10px;padding:10px 6px">
-            <div style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:4px">Meses</div>
-            <div style="font-size:14px;font-weight:700;color:#111">${p.meses}</div>
-          </div>
-          <div style="background:linear-gradient(180deg,#111,#444);border-radius:10px;padding:10px 6px">
-            <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;margin-bottom:4px">Mensual</div>
-            <div style="font-size:14px;font-weight:700;color:#fff">${fmt(p.mensualidad)}</div>
+            <div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:4px">Mensualidad</div>
+            <div style="font-size:14px;font-weight:700;color:#111">${fmt(p.mensualidad)}</div>
           </div>
         </div>
-      </div>`).join('');
+        <button onclick="verPromo('${p.id}')" style="width:100%;padding:11px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+          Ver promoción
+        </button>
+      </div>`;
+    }).join('');
   }catch(e){ lista.innerHTML = `<div style="text-align:center;color:#bbb;padding:24px">Error al cargar</div>`; }
+}
+
+window.cerrarDetallePromo = function(e){
+  if(!e || e.target===document.getElementById('modal-detalle-promo'))
+    document.getElementById('modal-detalle-promo').classList.remove('open');
+}
+
+window.verPromo = async function(id){
+  try{
+    const snap = await getDocs(query(collection(db,'promociones')));
+    const p = snap.docs.map(d=>({id:d.id,...d.data()})).find(x=>x.id===id);
+    if(!p) return;
+
+    const mesesTranscurridos = Math.min(p.meses, Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
+    const mesesFaltantes = p.meses - mesesTranscurridos;
+    const importePagado = p.mensualidad * mesesTranscurridos;
+    const importeFaltante = p.importe - importePagado;
+    const pct = Math.round((mesesTranscurridos/p.meses)*100);
+
+    document.getElementById('detalle-promo-content').innerHTML = `
+      <!-- Grid de datos -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+        <div style="background:#f5f5f5;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:4px">Banco</div>
+          <div style="font-size:13px;font-weight:700;color:#111">${p.banco}</div>
+        </div>
+        <div style="background:#f5f5f5;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:4px">Tarjeta</div>
+          <div style="font-size:13px;font-weight:700;color:#111">${p.tarjeta||'—'}</div>
+        </div>
+        <div style="background:#f5f5f5;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:4px">Importe total</div>
+          <div style="font-size:14px;font-weight:700;color:#111">${fmt(p.importe)}</div>
+        </div>
+        <div style="background:#f5f5f5;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:4px">Mensualidad</div>
+          <div style="font-size:14px;font-weight:700;color:#111">${fmt(p.mensualidad)}</div>
+        </div>
+        <div style="background:#f5f5f5;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:4px">Meses totales</div>
+          <div style="font-size:14px;font-weight:700;color:#111">${p.meses}</div>
+        </div>
+        <div style="background:#f5f5f5;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:4px">Meses pagados</div>
+          <div style="font-size:14px;font-weight:700;color:#111">${mesesTranscurridos}</div>
+        </div>
+        <div style="background:#f5f5f5;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:4px">Meses restantes</div>
+          <div style="font-size:14px;font-weight:700;color:#111">${mesesFaltantes}</div>
+        </div>
+        <div style="background:linear-gradient(180deg,#111,#444);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-bottom:4px">Falta pagar</div>
+          <div style="font-size:14px;font-weight:700;color:#fff">${fmt(importeFaltante)}</div>
+        </div>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px">
+          <span>${mesesTranscurridos} meses pagados</span>
+          <span>${mesesFaltantes} meses restantes</span>
+        </div>
+        <div style="background:#f0f0f0;border-radius:6px;height:8px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#111,#444);border-radius:6px;transition:width 0.5s"></div>
+        </div>
+        <div style="font-size:11px;color:#aaa;text-align:center;margin-top:4px">${pct}% completado</div>
+      </div>
+
+      <!-- Botón eliminar -->
+      <button onclick="eliminarPromo('${p.id}');cerrarDetallePromo()"
+        style="width:100%;padding:12px;border-radius:12px;background:none;border:1.5px solid #e0e0e0;color:#888;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+        Eliminar promoción
+      </button>
+    `;
+    document.getElementById('modal-detalle-promo').classList.add('open');
+  }catch(e){ showToast('❌ Error al cargar'); }
 }
 
 window.setNavActive = function(id){
@@ -2854,6 +2931,14 @@ window.confirmarEliminarPerfil = async function(){
       style="margin-top:20px;padding:11px 30px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
       Entendido
     </button>
+  </div>
+</div>
+
+<!-- Modal detalle promoción -->
+<div class="modal-overlay" id="modal-detalle-promo" onclick="cerrarDetallePromo(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detalle-promo-content"></div>
   </div>
 </div>
 
