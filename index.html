@@ -156,13 +156,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mov-item{background:#f5f5f5;border-radius:10px;padding:10px 8px;margin-bottom:4px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee;cursor:pointer;transition:background 0.2s,box-shadow 0.2s,transform 0.15s}
 .mov-item:last-child{border-bottom:none;margin-bottom:0}
 .mov-item.selected{background:linear-gradient(180deg,#111,#444);border-bottom-color:transparent;box-shadow:0 4px 14px rgba(0,0,0,0.18);transform:scale(1.01);border-radius:12px;z-index:1;position:relative;color:#fff}
-.mov-item.selected .mov-date{color:rgba(255,255,255,0.8)}
+.mov-item.selected .mov-date{color:#fff}
 .mov-item.selected .mov-amount{color:#fff}
 .mov-item.selected .mov-icon{background:rgba(255,255,255,0.15)}
-.mov-item.selected .edit-btn{color:#fff !important;opacity:0.9}
-.mov-item.selected .del-btn2{color:#fff !important;opacity:0.7}
-.mov-item.selected .edit-btn:hover{background:rgba(255,255,255,0.15)}
-.mov-item.selected .del-btn2:hover{background:rgba(255,255,255,0.15)}
+.mov-item.selected .edit-btn{color:#fff !important}
+.mov-item.selected .del-btn2{color:#fff !important}
 .mov-item.selected .edit-btn svg,.mov-item.selected .del-btn2 svg{stroke:#fff}
 .mov-icon{width:38px;height:38px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .mov-info{flex:1;min-width:0}
@@ -1126,8 +1124,8 @@ function renderMovimientos(){
     .slice(0,10);
 
   if(!filtrados.length){ el.innerHTML=`<div class="empty-mov">Sin movimientos en el corte actual</div>`; return; }
-  el.innerHTML = filtrados.map(m=>`
-    <div class="mov-item" onclick="resaltarMov(this)">
+  el.innerHTML = filtrados.map((m,idx)=>`
+    <div class="mov-item" onclick="resaltarMov(this)" >
       <div class="mov-icon"><svg width="16" height="16" fill="none" stroke="#111" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg></div>
       <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
       <div class="mov-amount">-${fmt(m.monto)}</div>
