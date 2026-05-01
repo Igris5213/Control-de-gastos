@@ -1833,11 +1833,12 @@ window.nuevaBusqueda = function(){
 }
 
 window.resaltarMov = function(el){
-  // Quitar resaltado de todos
-  document.querySelectorAll('#mov-list .mov-item').forEach(i=>i.classList.remove('selected'));
-  // Resaltar el seleccionado
+  // Determinar el contenedor padre (mov-list o movimientos-full)
+  const container = el.closest('#mov-list, #movimientos-full');
+  if(container){
+    container.querySelectorAll('.mov-item').forEach(i=>i.classList.remove('selected'));
+  }
   el.classList.add('selected');
-  // Quitar resaltado después de 2s
   setTimeout(()=>el.classList.remove('selected'), 2000);
 }
 
