@@ -2123,7 +2123,9 @@ async function renderPromociones(){
     lista.innerHTML = promos.map(p=>{
       // Calcular meses transcurridos desde creadoEn
       // La primera mensualidad ya está pagada al momento de registrar
-    const mesesTranscurridos = Math.min(p.meses, 1 + Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
+    const mesesTranscurridos = p.mesesPagados !== undefined 
+      ? p.mesesPagados 
+      : Math.min(p.meses, 1 + Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
       const mesesFaltantes = p.meses - mesesTranscurridos;
       const importePagado = p.mensualidad * mesesTranscurridos;
       const importeFaltante = p.importe - importePagado;
@@ -2165,6 +2167,13 @@ window.abrirEditarPromo = async function(id){
     document.getElementById('edit-promo-meses-txt').style.color = '#111';
     document.getElementById('edit-promo-meses').value = p.meses;
     document.getElementById('edit-promo-nombre').textContent = p.nombre;
+    // Meses pagados
+    const mesesPagActual = Math.min(p.meses, 1 + Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
+    const mesesPagGuardado = p.mesesPagados !== undefined ? p.mesesPagados : mesesPagActual;
+    document.getElementById('edit-promo-mesespag-txt').textContent = mesesPagGuardado + (mesesPagGuardado===1?' mes pagado':' meses pagados');
+    document.getElementById('edit-promo-mesespag-txt').style.color = '#111';
+    document.getElementById('edit-promo-mesespag').value = mesesPagGuardado;
+    document.getElementById('edit-meses-pag-scroll-wrap').style.display = 'none';
     // Abrir modal
     document.getElementById('modal-edit-promo').classList.add('open');
     // Construir scroll de meses
@@ -2200,9 +2209,44 @@ function buildScrollMesesEdit(current){
   };
 }
 
+window.abrirScrollMesesPagEdit = function(){
+  const wrap = document.getElementById('edit-meses-pag-scroll-wrap');
+  const isOpen = wrap.style.display === 'block';
+  // Cerrar el otro scroll
+  document.getElementById('edit-meses-scroll-wrap').style.display = 'none';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    const maxMeses = parseInt(document.getElementById('edit-promo-meses').value) || 24;
+    const current = parseInt(document.getElementById('edit-promo-mesespag').value) || 1;
+    const cont = document.getElementById('edit-scroll-mesespag-items');
+    const scrollCont = document.getElementById('edit-scroll-mesespag-cont');
+    cont.innerHTML = Array.from({length:maxMeses},(_,i)=>i+1).map(n=>`
+      <div class="scroll-item${n===current?' sel':''}" data-m="${n}" style="${n===current?'color:#fff;':''}">${n} ${n===1?'mes':'meses'}</div>
+    `).join('');
+    setTimeout(()=>{
+      scrollCont.scrollTop = (current-1)*44;
+      cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+        const sel = i===(current-1); el.classList.toggle('sel',sel); el.style.color=sel?'#fff':'';
+      });
+    },50);
+    scrollCont.onscroll = ()=>{
+      const idx = Math.round(scrollCont.scrollTop/44);
+      const meses = Math.min(maxMeses, Math.max(1, idx+1));
+      cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+        const sel=i===idx; el.classList.toggle('sel',sel); el.style.color=sel?'#fff':'';
+      });
+      document.getElementById('edit-promo-mesespag').value = meses;
+      document.getElementById('edit-promo-mesespag-txt').textContent = meses + (meses===1?' mes pagado':' meses pagados');
+      document.getElementById('edit-promo-mesespag-txt').style.color = '#111';
+    };
+  }
+}
+
 window.abrirScrollMesesEdit = function(){
   const wrap = document.getElementById('edit-meses-scroll-wrap');
   const isOpen = wrap.style.display === 'block';
+  // Cerrar el otro scroll
+  document.getElementById('edit-meses-pag-scroll-wrap').style.display = 'none';
   wrap.style.display = isOpen ? 'none' : 'block';
   if(!isOpen){
     const current = parseInt(document.getElementById('edit-promo-meses').value) || 3;
@@ -2211,8 +2255,12 @@ window.abrirScrollMesesEdit = function(){
 }
 
 window.cerrarEditPromo = function(e){
-  if(!e || e.target===document.getElementById('modal-edit-promo'))
+  if(!e || e.target===document.getElementById('modal-edit-promo')){
     document.getElementById('modal-edit-promo').classList.remove('open');
+    // Regresar al detalle si hay un id cargado
+    const id = document.getElementById('edit-promo-id').value;
+    if(id) setTimeout(()=>verPromo(id), 100);
+  }
 }
 
 window.guardarEditPromo = async function(){
@@ -2222,7 +2270,8 @@ window.guardarEditPromo = async function(){
   if(!importe||importe<=0){ showToast('Ingresa el importe'); return; }
   if(!meses){ showToast('Selecciona los meses'); return; }
   try{
-    await updateDoc(doc(db,'promociones',id),{ importe, meses, mensualidad: importe/meses });
+    const mesesPagados = parseInt(document.getElementById('edit-promo-mesespag').value) || 1;
+    await updateDoc(doc(db,'promociones',id),{ importe, meses, mensualidad: importe/meses, mesesPagados });
     document.getElementById('modal-edit-promo').classList.remove('open');
     showSuccess('Promoción actualizada','Los cambios fueron guardados');
     renderPromociones();
@@ -2263,7 +2312,9 @@ window.verPromo = async function(id){
     if(!p) return;
 
     // La primera mensualidad ya está pagada al momento de registrar
-    const mesesTranscurridos = Math.min(p.meses, 1 + Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
+    const mesesTranscurridos = p.mesesPagados !== undefined 
+      ? p.mesesPagados 
+      : Math.min(p.meses, 1 + Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
     const mesesFaltantes = p.meses - mesesTranscurridos;
     const importePagado = p.mensualidad * mesesTranscurridos;
     const importeFaltante = p.importe - importePagado;
@@ -3092,6 +3143,31 @@ window.confirmarEliminarPerfil = async function(){
         <span class="amount-prefix">$</span>
         <input class="amount-inp" id="edit-promo-importe" type="number" placeholder="0.00" min="0" step="1" inputmode="decimal"/>
       </div>
+    </div>
+
+    <!-- Meses pagados -->
+    <div class="field-wrap">
+      <div class="field-label">Meses pagados</div>
+      <div onclick="abrirScrollMesesPagEdit()" id="edit-promo-mesespag-display"
+        style="padding:12px 14px;border-radius:12px;border:1.5px solid #e0e0e0;font-size:15px;cursor:pointer;color:#999;display:flex;justify-content:space-between;align-items:center;background:#fff">
+        <span id="edit-promo-mesespag-txt">Seleccionar...</span>
+        <span style="color:#aaa;font-size:12px">▾</span>
+      </div>
+      <input type="hidden" id="edit-promo-mesespag"/>
+    </div>
+
+    <!-- Scroll meses pagados -->
+    <div id="edit-meses-pag-scroll-wrap" style="display:none;margin-top:-8px;margin-bottom:8px;background:#f5f5f5;border-radius:14px;overflow:hidden;position:relative">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-align:center;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Desliza para seleccionar</div>
+      <div style="position:relative;height:132px">
+        <div style="position:absolute;left:12px;right:12px;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
+        <div id="edit-scroll-mesespag-cont" style="position:absolute;inset:0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+          <div style="height:44px"></div>
+          <div id="edit-scroll-mesespag-items" style="width:100%"></div>
+          <div style="height:44px"></div>
+        </div>
+      </div>
+      <div style="height:8px"></div>
     </div>
 
     <!-- Meses -->
