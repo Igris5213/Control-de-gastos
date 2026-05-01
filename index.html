@@ -1887,6 +1887,29 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
   const rec = document.getElementById('recuadro-movimientos');
   rec.style.display = 'block';
   document.getElementById('btn-nueva-busqueda').style.display = 'flex';
+  // Mostrar promociones vigentes de esta tarjeta en este corte
+  const promosVigentes = promocionesCache.filter(p=>{
+    if(p.tarjetaId !== tarjetaId) return false;
+    const mPag = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, 1+Math.floor((Date.now()-p.creadoEn)/(1000*60*60*24*30)));
+    return mPag < p.meses; // solo activas
+  });
+  const recPromos = document.getElementById('recuadro-promos-historial');
+  const listaPromos = document.getElementById('promos-historial-lista');
+  if(promosVigentes.length){
+    recPromos.style.display = 'block';
+    // Fecha de fin del corte seleccionado formateada
+    const finFmt = periodoFin.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+    listaPromos.innerHTML = promosVigentes.map(p=>`
+      <div class="section-card" style="margin:0 0 8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#111;margin-bottom:2px">${p.comercio?p.comercio+' · ':''}<span style="font-weight:500">${p.nombre}</span></div>
+          <div style="font-size:12px;color:#888">${finFmt}</div>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#111;white-space:nowrap;margin-left:12px">-${fmt(p.mensualidad)}</div>
+      </div>`).join('');
+  } else {
+    recPromos.style.display = 'none';
+  }
   // Bloquear recuadros de selección hasta nueva búsqueda
   ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
     const el = document.getElementById(id);
@@ -1931,6 +1954,11 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
 }
 
 window.nuevaBusqueda = function(){
+  document.getElementById('recuadro-promos-historial').style.display = 'none';
+  document.getElementById('promos-historial-lista').innerHTML = '';
+  // Ocultar promociones en historial
+  const recPH = document.getElementById('recuadro-promos-historial');
+  if(recPH) recPH.style.display = 'none';
   // Rehabilitar recuadros
   ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
     const el = document.getElementById(id);
@@ -3061,6 +3089,18 @@ window.confirmarEliminarPerfil = async function(){
     <button id="btn-nueva-busqueda" onclick="nuevaBusqueda()" style="display:none;width:100%;margin:0 0 12px;padding:14px;border-radius:14px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;align-items:center;justify-content:center;gap:8px">
       ↩ Nueva búsqueda
     </button>
+
+    <!-- Promociones vigentes del corte -->
+    <div id="recuadro-promos-vigentes" style="display:none;margin:0 0 12px">
+      <div style="font-size:12px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Promociones vigentes</div>
+      <div id="promos-vigentes-lista"></div>
+    </div>
+
+    <!-- Promociones vigentes en historial -->
+    <div id="recuadro-promos-historial" style="display:none;margin:0 0 12px">
+      <div style="font-size:12px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;padding:0 2px">Promociones activas este corte</div>
+      <div id="promos-historial-lista"></div>
+    </div>
 
     <!-- Movimientos -->
     <div class="section-card" id="recuadro-movimientos" style="display:none;margin:0 0 12px">
