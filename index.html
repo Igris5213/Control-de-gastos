@@ -1011,9 +1011,11 @@ function updateCards(){
       barEl.style.background = sobregiro ? 'rgba(255,255,255,0.5)' : '#fff';
     }
     if(pctEl){
-      pctEl.textContent = sobregiro
-        ? `⚠️ Sobregiro: ${Math.round(exceso/t.limite*100)}% del límite`
-        : `${pct}% utilizado`;
+      if(sobregiro){
+        pctEl.innerHTML = `<svg width="13" height="13" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Sobregiro: ${Math.round(exceso/t.limite*100)}% del límite`;
+      } else {
+        pctEl.textContent = `${pct}% utilizado`;
+      }
       pctEl.style.color = 'rgba(255,255,255,0.9)';
     }
     const diasEl=document.getElementById(`dias-${i}`);
