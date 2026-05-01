@@ -1255,37 +1255,37 @@ window.renderPerfiles = function(){
     lista.innerHTML = '<div style="text-align:center;color:#bbb;padding:20px">Sin perfiles guardados</div>';
     return;
   }
-  const colores = ['#1a2e5a','#5b21b6','#065f46','#92400e','#7f1d1d','#1e3a5f'];
+  const colores = ['#111','#555','#111','#555','#111','#555'];
 
   lista.innerHTML = `
     <div style="background:#fff;border-radius:16px;padding:18px;box-shadow:0 1px 6px rgba(0,0,0,0.08);margin-bottom:12px">
 
       <!-- Header perfil -->
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(180deg,#2d8a4e,#4ade80);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:700;flex-shrink:0">
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(180deg,#111,#444);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:700;flex-shrink:0">
           ${perfil.nombre.charAt(0).toUpperCase()}
         </div>
         <div style="flex:1">
           <div style="font-size:16px;font-weight:700;color:#111">${perfil.nombre}</div>
         </div>
         <div style="background:#111;color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px">Activo</div>
-        <button onclick="toggleEdicion()" style="background:${modoEdicion?'#7c3aed':'#f0eeff'};color:${modoEdicion?'#fff':'#7c3aed'};border:none;border-radius:10px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
-          ${modoEdicion ? '✓ Listo' : '✏️ Editar'}
+        <button onclick="toggleEdicion()" style="background:${modoEdicion?'#111':'#f0f0f0'};color:${modoEdicion?'#fff':'#111'};border:none;border-radius:10px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          ${modoEdicion ? '✓ Listo' : 'Editar'}
         </button>
       </div>
 
       <!-- Lista de tarjetas -->
       <div style="display:flex;flex-direction:column;gap:8px" id="lista-tarjetas-edit">
         ${perfil.tarjetas.map((t,i)=>`
-          <div style="background:#f4f5f9;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+          <div style="background:#f5f5f5;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
             <div style="width:10px;height:10px;border-radius:50%;background:${colores[i%colores.length]};flex-shrink:0"></div>
             <div style="flex:1">
               <div style="font-size:14px;font-weight:600;color:#111">${t.nombre}${t.apodo ? ` <span style="font-weight:400;color:#888">· ${t.apodo}</span>` : ''}</div>
               <div style="font-size:11px;color:#888">Corte día ${t.corte} · Límite $${t.limite.toLocaleString('es-MX')}</div>
             </div>
             ${modoEdicion ? `
-              <button onclick="abrirEditarTarjeta('${t.id}')" style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 10px;color:#111;font-size:13px;cursor:pointer;margin-right:4px">✏️</button>
-              <button onclick="eliminarTarjetaPerfil('${t.id}')" style="background:#fee2e2;border:none;border-radius:8px;padding:6px 10px;color:#ef4444;font-size:13px;cursor:pointer">🗑</button>
+              <button onclick="abrirEditarTarjeta('${t.id}')" style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 10px;color:#111;font-size:13px;cursor:pointer;margin-right:4px"><svg width='13' height='13' fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'/></svg></button>
+              <button onclick="eliminarTarjetaPerfil('${t.id}')" style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 10px;color:#111;font-size:13px;cursor:pointer">✕</button>
             ` : ''}
           </div>`).join('')}
       </div>
@@ -1299,7 +1299,7 @@ window.renderPerfiles = function(){
       </button>
 
       <!-- Formulario oculto inicialmente -->
-      <div id="form-edit-tarjeta" style="display:none;margin-top:12px;background:#f4f5f9;border-radius:12px;padding:14px">
+      <div id="form-edit-tarjeta" style="display:none;margin-top:12px;background:#f5f5f5;border-radius:12px;padding:14px">
         <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:12px">Nueva tarjeta</div>
 
         <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Banco</div>
@@ -1325,12 +1325,12 @@ window.renderPerfiles = function(){
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <button onclick="ocultarFormAgregarTarjeta()" style="padding:11px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;color:#666;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
-          <button onclick="guardarNuevaTarjeta()" style="padding:11px;border-radius:10px;background:linear-gradient(180deg,#2d8a4e,#4ade80);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Guardar</button>
+          <button onclick="guardarNuevaTarjeta()" style="padding:11px;border-radius:10px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Guardar</button>
         </div>
       </div>` : ''}
 
       <!-- Botón eliminar perfil -->
-      <button onclick="abrirSettings()" style="margin-top:14px;width:100%;padding:10px;border-radius:10px;border:1.5px solid #ef4444;background:none;color:#ef4444;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+      <button onclick="abrirSettings()" style="margin-top:14px;width:100%;padding:10px;border-radius:10px;border:1.5px solid #111;background:none;color:#111;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
         🗑 Eliminar perfil
       </button>
     </div>`;
@@ -1649,8 +1649,8 @@ window.seleccionarBancoMov = function(nombre){
   document.getElementById('dd-bancos-icon').style.transform = '';
   // Resaltar opción seleccionada
   document.querySelectorAll('#lista-bancos-btns div').forEach(b=>{
-    b.style.background = b.dataset.nombre===nombre ? '#f0eeff' : '#fff';
-    b.style.color = b.dataset.nombre===nombre ? '#7c3aed' : '#111';
+    b.style.background = b.dataset.nombre===nombre ? '#111' : '#fff';
+    b.style.color = b.dataset.nombre===nombre ? '#fff' : '#111';
     b.style.fontWeight = b.dataset.nombre===nombre ? '700' : '500';
   });
   // Resetear tarjeta y movimientos
@@ -1685,8 +1685,8 @@ window.seleccionarApodoMov = function(tarjetaId, apodo, corte){
   document.getElementById('dd-tarjetas-icon').style.transform = '';
   // Resaltar opción
   document.querySelectorAll('#lista-apodos-btns div').forEach(b=>{
-    b.style.background = b.dataset.id===tarjetaId ? '#f0eeff' : '#fff';
-    b.style.color = b.dataset.id===tarjetaId ? '#7c3aed' : '#111';
+    b.style.background = b.dataset.id===tarjetaId ? '#111' : '#fff';
+    b.style.color = b.dataset.id===tarjetaId ? '#fff' : '#111';
     b.style.fontWeight = b.dataset.id===tarjetaId ? '700' : '500';
   });
   // Mostrar selector de AÑO
@@ -2368,11 +2368,23 @@ window.confirmarEliminarPerfil = async function(){
   <div class="modal">
     <div class="modal-handle"></div>
     <div style="text-align:center;padding:10px 0 20px">
-      <div style="font-size:18px;font-weight:700;color:#111">¿Eliminar el perfil completo?</div>
+      <!-- Ícono advertencia -->
+      <div style="width:56px;height:56px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+        <svg width="26" height="26" fill="none" stroke="#111" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div style="font-size:18px;font-weight:700;color:#111;margin-bottom:10px">¿Eliminar perfil?</div>
+      <div style="font-size:14px;color:#666;line-height:1.5;padding:0 8px">
+        Si eliminas este perfil, <strong>perderás todas las tarjetas configuradas</strong>.<br><br>
+        Tendrás que <strong>crear un nuevo perfil desde cero</strong> con tus bancos y tarjetas.
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <button onclick="cerrarModalPerfil()" style="padding:13px;border-radius:12px;border:1px solid #ddd;background:#fff">Cancelar</button>
-      <button onclick="confirmarEliminarPerfil()" style="padding:13px;border-radius:12px;background:linear-gradient(180deg,#333,#666);color:#fff;border:none">Eliminar</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <button onclick="cerrarModalPerfil()" style="padding:13px;border-radius:12px;border:1.5px solid #e0e0e0;background:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#111">Cancelar</button>
+      <button onclick="confirmarEliminarPerfil()" style="padding:13px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Eliminar</button>
     </div>
   </div>
 </div>
