@@ -1104,7 +1104,7 @@ function getCortesDisponibles(tarjetaId, corte, anio){
     const key = p.fin.toISOString().split('T')[0];
     if(!cortesMap[key]) cortesMap[key] = { inicio:p.inicio, fin:p.fin, nombre: nombreCorte(corte, fecha), key };
   });
-  return Object.values(cortesMap).sort((a,b)=>b.fin-a.fin);
+  return Object.values(cortesMap).sort((a,b)=>a.fin-b.fin);
 }
 
 // Filtrar movimientos por período de corte
@@ -1887,6 +1887,14 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
   const rec = document.getElementById('recuadro-movimientos');
   rec.style.display = 'block';
   document.getElementById('btn-nueva-busqueda').style.display = 'flex';
+  // Bloquear recuadros de selección hasta nueva búsqueda
+  ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.parentElement && el.parentElement.parentElement){
+      el.parentElement.parentElement.style.pointerEvents = 'none';
+      el.parentElement.parentElement.style.opacity = '0.75';
+    }
+  });
   // Callback ligero: solo actualiza el contenido sin tocar dropdowns
   const renderCorte = ()=>{
     const d = movsPorCorte(tarjetaId, corte, periodoFin);
@@ -1923,6 +1931,14 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
 }
 
 window.nuevaBusqueda = function(){
+  // Rehabilitar recuadros
+  ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.parentElement && el.parentElement.parentElement){
+      el.parentElement.parentElement.style.pointerEvents = '';
+      el.parentElement.parentElement.style.opacity = '';
+    }
+  });
   // Resetear todo a estado inicial
   document.getElementById('banco-seleccionado-txt').textContent = 'Seleccionar banco';
   document.getElementById('dd-bancos').style.display = 'none';
