@@ -915,12 +915,22 @@ window.goTo = function(idx, animate=true){
 }
 
 
-function getPeriodo(corte){
-  const d=today.getDate(),m=today.getMonth(),y=today.getFullYear();
-  let inicio,fin;
-  if(d<=corte){ const pm=m===0?11:m-1,py=m===0?y-1:y; inicio=new Date(py,pm,corte+1); fin=new Date(y,m,corte); }
-  else { inicio=new Date(y,m,corte+1); const nm=m===11?0:m+1,ny=m===11?y+1:y; fin=new Date(ny,nm,corte); }
-  return { inicio, fin, dias: Math.max(0,Math.ceil((fin-today)/86400000)) };
+function getPeriodo(corte, ref=today){
+  // ref puede ser Date o usar today por defecto
+  const r = ref instanceof Date ? ref : today;
+  const d=r.getDate(), m=r.getMonth(), y=r.getFullYear();
+  let inicio, fin;
+  if(d<=corte){
+    const pm=m===0?11:m-1, py=m===0?y-1:y;
+    inicio=new Date(py,pm,corte+1);
+    fin=new Date(y,m,corte);
+  } else {
+    inicio=new Date(y,m,corte+1);
+    const nm=m===11?0:m+1, ny=m===11?y+1:y;
+    fin=new Date(ny,nm,corte);
+  }
+  const dias = Math.max(0,Math.ceil((fin-today)/86400000));
+  return { inicio, fin, dias };
 }
 
 function updateCards(){
