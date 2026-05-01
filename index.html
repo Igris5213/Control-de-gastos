@@ -980,13 +980,13 @@ function updateCards(){
     if(dispEl) dispEl.textContent = sobregiro ? `Sobregiro: ${fmt(exceso)}` : fmt(disp);
     if(barEl){
       barEl.style.width = pct+'%';
-      barEl.style.background = sobregiro ? '#ff4444' : (pct>=80 ? '#ffaa00' : '#00d4aa');
+      barEl.style.background = sobregiro ? 'rgba(255,255,255,0.5)' : '#fff';
     }
     if(pctEl){
       pctEl.textContent = sobregiro
         ? `⚠️ Sobregiro: ${Math.round(exceso/t.limite*100)}% del límite`
         : `${pct}% utilizado`;
-      pctEl.style.color = sobregiro ? '#ff8888' : 'rgba(255,255,255,0.9)';
+      pctEl.style.color = 'rgba(255,255,255,0.9)';
     }
     const diasEl=document.getElementById(`dias-${i}`);
     if(diasEl) diasEl.textContent=diasTxt;
