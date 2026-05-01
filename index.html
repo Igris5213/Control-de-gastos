@@ -1150,6 +1150,16 @@ window.guardar = async function(){
       try {
         await addDoc(collection(db,'movimientos'), datos);
         showSuccess();
+        // Verificar sobregiro después de que onSnapshot actualice movimientos
+        const _tSob = t;
+        setTimeout(()=>{
+          const pC = getPeriodo(_tSob.corte);
+          const usado = movimientos
+            .filter(m=>m.tarjetaId===_tSob.id)
+            .filter(m=>{ const f=new Date(m.fecha+'T12:00:00'); return f>=pC.inicio && f<=pC.fin; })
+            .reduce((s,m)=>s+m.monto, 0);
+          if(usado > _tSob.limite) showSobregiro(_tSob, usado - _tSob.limite);
+        }, 1500);
       } catch(fireErr){
         showToast('❌ Error: '+fireErr.message);
         btn.disabled=false;
@@ -1232,6 +1242,14 @@ function showSuccess(titulo='Movimiento guardado', subtitulo='Tu gasto fue regis
   const overlay = document.getElementById('success-overlay');
   overlay.classList.add('show');
   setTimeout(()=>overlay.classList.remove('show'), 1800);
+}
+
+window.showSobregiro = function(tarjeta, exceso){
+  const el = document.getElementById('sobregiro-sub');
+  if(el) el.textContent = 'Has excedido el límite de ' + tarjeta.nombre + 
+    (tarjeta.apodo ? ' (' + tarjeta.apodo + ')' : '') + ' por ' + fmt(exceso);
+  const ov = document.getElementById('sobregiro-overlay');
+  if(ov) ov.classList.add('show');
 }
 
 function showToast(msg){
@@ -1548,10 +1566,24 @@ window.guardarExt = async function(){
   try{
     await addDoc(collection(db,'movimientos'), datos);
     document.getElementById('modal-ext-overlay').classList.remove('open');
-    // limpiar
     document.getElementById('inp-monto-ext').value = '';
     document.getElementById('inp-fecha-ext').value = '';
-    showSuccess();
+    showSuccess('Movimiento guardado', 'Tu gasto extemporáneo fue registrado');
+    // Verificar sobregiro después de que onSnapshot actualice movimientos
+    const _tSobExt = t;
+    setTimeout(()=>{
+      try{
+        const pC2 = getPeriodo(_tSobExt.corte);
+        const fechaExtD = new Date(fecha+'T12:00:00');
+        if(fechaExtD >= pC2.inicio && fechaExtD <= pC2.fin){
+          const usado2 = movimientos
+            .filter(m=>m.tarjetaId===_tSobExt.id)
+            .filter(m=>{ const f=new Date(m.fecha+'T12:00:00'); return f>=pC2.inicio && f<=pC2.fin; })
+            .reduce((s,m)=>s+m.monto, 0);
+          if(usado2 > _tSobExt.limite) showSobregiro(_tSobExt, usado2 - _tSobExt.limite);
+        }
+      }catch(ex){}
+    }, 1500);
   }catch(e){
     console.error(e);
     showToast('❌ Error');
@@ -2244,10 +2276,24 @@ window.guardarExt = async function(){
   try{
     await addDoc(collection(db,'movimientos'), datos);
     document.getElementById('modal-ext-overlay').classList.remove('open');
-    // limpiar
     document.getElementById('inp-monto-ext').value = '';
     document.getElementById('inp-fecha-ext').value = '';
-    showSuccess();
+    showSuccess('Movimiento guardado', 'Tu gasto extemporáneo fue registrado');
+    // Verificar sobregiro después de que onSnapshot actualice movimientos
+    const _tSobExt = t;
+    setTimeout(()=>{
+      try{
+        const pC2 = getPeriodo(_tSobExt.corte);
+        const fechaExtD = new Date(fecha+'T12:00:00');
+        if(fechaExtD >= pC2.inicio && fechaExtD <= pC2.fin){
+          const usado2 = movimientos
+            .filter(m=>m.tarjetaId===_tSobExt.id)
+            .filter(m=>{ const f=new Date(m.fecha+'T12:00:00'); return f>=pC2.inicio && f<=pC2.fin; })
+            .reduce((s,m)=>s+m.monto, 0);
+          if(usado2 > _tSobExt.limite) showSobregiro(_tSobExt, usado2 - _tSobExt.limite);
+        }
+      }catch(ex){}
+    }, 1500);
   }catch(e){
     console.error(e);
     showToast('❌ Error');
@@ -2426,6 +2472,25 @@ window.confirmarEliminarPerfil = async function(){
     </div>
     <div class="success-title">Movimiento guardado</div>
     <div class="success-sub">Tu gasto fue registrado correctamente</div>
+  </div>
+</div>
+
+<!-- Modal sobregiro -->
+<div class="success-overlay" id="sobregiro-overlay" onclick="this.classList.remove('show')">
+  <div class="success-box">
+    <div class="success-icon" style="background:linear-gradient(180deg,#333,#666)">
+      <svg width="28" height="28" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
+    <div class="success-title">¡Límite superado!</div>
+    <div class="success-sub" id="sobregiro-sub">Has excedido el límite de tu tarjeta</div>
+    <button onclick="document.getElementById('sobregiro-overlay').classList.remove('show')"
+      style="margin-top:20px;padding:11px 30px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+      Entendido
+    </button>
   </div>
 </div>
 
