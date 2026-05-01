@@ -857,36 +857,47 @@ function buildCarrusel(){
   goTo(0, false);
 }
 
+// Variables globales del swipe para poder remover listeners
+let _swipeSx=0, _swipeSy=0, _swipeDx=0, _swipeDragging=false;
+
+function _swipeCambiar(){
+  const n = perfil ? perfil.tarjetas.length : 1;
+  if(_swipeDx < -50 && current < n-1) goTo(current+1);
+  else if(_swipeDx > 50 && current > 0) goTo(current-1);
+}
+function _onTouchStart(e){
+  if(e.target.closest('button,input,select')) return;
+  _swipeSx=e.touches[0].clientX; _swipeSy=e.touches[0].clientY; _swipeDx=0; _swipeDragging=true;
+}
+function _onTouchMove(e){
+  if(!_swipeDragging) return;
+  _swipeDx = e.touches[0].clientX - _swipeSx;
+  if(Math.abs(e.touches[0].clientY - _swipeSy) > Math.abs(_swipeDx)){ _swipeDragging=false; }
+}
+function _onTouchEnd(){ if(!_swipeDragging) return; _swipeDragging=false; _swipeCambiar(); }
+function _onMouseDown(e){
+  if(e.target.closest('button,input')) return;
+  _swipeSx=e.clientX; _swipeDx=0; _swipeDragging=true; e.preventDefault();
+}
+function _onMouseMove(e){ if(!_swipeDragging) return; _swipeDx=e.clientX-_swipeSx; }
+function _onMouseUp(){ if(!_swipeDragging) return; _swipeDragging=false; _swipeCambiar(); }
+
 function setupSwipe(){
   const outer = document.getElementById('cards-outer');
-  let sx=0, sy=0, dx=0, dragging=false;
-
-  function cambiar(){
-    const n = perfil ? perfil.tarjetas.length : 1;
-    if(dx < -50 && current < n-1) goTo(current+1);
-    else if(dx > 50 && current > 0) goTo(current-1);
-  }
-
-  // Touch
-  outer.addEventListener('touchstart', e=>{
-    if(e.target.closest('button,input,select')) return;
-    sx=e.touches[0].clientX; sy=e.touches[0].clientY; dx=0; dragging=true;
-  },{passive:true});
-  outer.addEventListener('touchmove', e=>{
-    if(!dragging) return;
-    dx = e.touches[0].clientX - sx;
-    const dy = e.touches[0].clientY - sy;
-    if(Math.abs(dy) > Math.abs(dx)) { dragging=false; return; }
-  },{passive:true});
-  outer.addEventListener('touchend', ()=>{ if(!dragging) return; dragging=false; cambiar(); });
-
-  // Mouse
-  outer.addEventListener('mousedown', e=>{
-    if(e.target.closest('button,input')) return;
-    sx=e.clientX; dx=0; dragging=true; e.preventDefault();
-  });
-  window.addEventListener('mousemove', e=>{ if(!dragging) return; dx=e.clientX-sx; });
-  window.addEventListener('mouseup', ()=>{ if(!dragging) return; dragging=false; cambiar(); });
+  // Limpiar listeners anteriores
+  outer.removeEventListener('touchstart', _onTouchStart);
+  outer.removeEventListener('touchmove', _onTouchMove);
+  outer.removeEventListener('touchend', _onTouchEnd);
+  outer.removeEventListener('mousedown', _onMouseDown);
+  window.removeEventListener('mousemove', _onMouseMove);
+  window.removeEventListener('mouseup', _onMouseUp);
+  // Agregar nuevos
+  outer.addEventListener('touchstart', _onTouchStart, {passive:true});
+  outer.addEventListener('touchmove', _onTouchMove, {passive:true});
+  outer.addEventListener('touchend', _onTouchEnd);
+  outer.addEventListener('mousedown', _onMouseDown);
+  window.addEventListener('mousemove', _onMouseMove);
+  window.addEventListener('mouseup', _onMouseUp);
 }
 
 window.goTo = function(idx, animate=true){
