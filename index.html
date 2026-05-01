@@ -625,6 +625,7 @@ let movimientos = [];
 let current = 0;
 let editingId = null;
 let deletingId = null;
+let promocionesCache = []; // cache de promociones para updateCards
 let onAfterEdit = null; // callback tras editar/eliminar en ventana movimientos
 let movVisible = true;
 let tarjetasOb = [];       // tarjetas durante onboarding
@@ -844,7 +845,11 @@ async function iniciarApp(){
   const q = query(collection(db,'movimientos'), orderBy('creadoEn','desc'));
   onSnapshot(q, snap=>{
     movimientos = snap.docs.map(d=>({id:d.id,...d.data()}));
-    updateCards();
+    // Cargar promociones para el cálculo de mensualidades
+    getDocs(query(collection(db,'promociones'))).then(ps=>{
+      promocionesCache = ps.docs.map(d=>({id:d.id,...d.data()}));
+      updateCards();
+    }).catch(()=>updateCards());
     renderMovimientos();
     // Refrescar ventana de movimientos si está abierta
     if(typeof onAfterEdit === 'function'){
@@ -1028,7 +1033,14 @@ function updateCards(){
   if(!perfil || !perfil.tarjetas) return;
   perfil.tarjetas.forEach((t,i)=>{
     const {inicio,fin,dias} = getPeriodo(t.corte);
-    const usado = movimientos.filter(m=>m.tarjetaId===t.id&&new Date(m.fecha+'T12:00:00')>=inicio&&new Date(m.fecha+'T12:00:00')<=fin).reduce((s,m)=>s+m.monto,0);
+    // Movimientos del corte
+    const usadoMovs = movimientos.filter(m=>m.tarjetaId===t.id&&new Date(m.fecha+'T12:00:00')>=inicio&&new Date(m.fecha+'T12:00:00')<=fin).reduce((s,m)=>s+m.monto,0);
+    // Mensualidades activas de promociones de esta tarjeta
+    const mensualidadesPromo = promocionesCache
+      .filter(p=>p.tarjetaId===t.id)
+      .filter(p=>{ const mPag = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, 1+Math.floor((Date.now()-p.creadoEn)/(1000*60*60*24*30))); return mPag < p.meses; })
+      .reduce((s,p)=>s+p.mensualidad, 0);
+    const usado = usadoMovs + mensualidadesPromo;
     const sobregiro = usado > t.limite;
     const disp = sobregiro ? 0 : t.limite - usado;
     const exceso = sobregiro ? usado - t.limite : 0;
@@ -2111,6 +2123,8 @@ async function renderPromociones(){
   try{
     const snap = await getDocs(query(collection(db,'promociones'), orderBy('creadoEn','desc')));
     const promos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    promocionesCache = promos; // actualizar cache
+    updateCards(); // recalcular usados con mensualidades
     if(!promos.length){
       lista.innerHTML = '<div style="text-align:center;padding:48px 20px;color:#bbb;font-size:14px">Sin promociones registradas</div>';
       return;
