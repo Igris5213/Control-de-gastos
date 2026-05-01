@@ -1311,9 +1311,12 @@ window.guardarEdicionTarjeta = async function(){
 
 window.toggleEdicion = function(){
   modoEdicion = !modoEdicion;
-  // Reset selección banco/corte al entrar en modo edición
   selectedBancoEdit = '';
   selectedCorteEdit = null;
+  // Al salir del modo edición (Listo), reconstruir el carrusel con los cambios
+  if(!modoEdicion){
+    buildCarrusel();
+  }
   renderPerfiles();
 }
 
@@ -1346,7 +1349,7 @@ window.guardarNuevaTarjeta = async function(){
   perfil.tarjetas.push(nueva);
   try{
     await setDoc(doc(db,'perfil','usuario'), perfil);
-    buildCarrusel();
+    // NO reconstruir carrusel hasta que el usuario toque "Listo"
     selectedBancoEdit = '';
     selectedCorteEdit = null;
     showToast('✓ Tarjeta agregada');
