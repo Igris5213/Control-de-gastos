@@ -974,7 +974,7 @@ function fmt(n){ return '$'+Number(n).toLocaleString('es-MX',{minimumFractionDig
 // Nombre del corte: mes en que termina
 function nombreCorte(corte, ref){
   const p = getPeriodo(corte, ref);
-  return p.fin.toLocaleDateString('es-MX',{month:'long', year:'numeric'});
+  return p.fin.toLocaleDateString('es-MX',{month:'long'});
 }
 
 // Obtener años disponibles para una tarjeta
