@@ -2119,25 +2119,21 @@ async function renderPromociones(){
     let html = '';
     bancos.forEach(function(banco){
       const grupoPromos = promos.filter(function(p){ return p.banco===banco; });
-      // Recuadro del banco
-      html += '<div style="background:#fff;border-radius:18px;padding:16px;margin-bottom:16px;box-shadow:0 1px 8px rgba(0,0,0,0.08)">';
-      // Header del banco dentro del recuadro
-      html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #f0f0f0">';
+      const bancoId = 'banco-' + banco.replace(/\s+/g,'_');
+      html += '<div style="background:#fff;border-radius:18px;margin-bottom:12px;box-shadow:0 1px 8px rgba(0,0,0,0.08);overflow:hidden">';
+      html += '<div data-banco="' + bancoId + '" class="banco-header" style="display:flex;align-items:center;gap:10px;padding:16px;cursor:pointer">';
       html += '<div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(180deg,#111,#444);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg></div>';
-      html += '<div><div style="font-size:15px;font-weight:700;color:#111">' + banco + '</div>';
-      html += '<div style="font-size:11px;color:#aaa;margin-top:1px">' + grupoPromos.length + ' ' + (grupoPromos.length===1?'promoción':'promociones') + '</div></div>';
+      html += '<div style="flex:1"><div style="font-size:15px;font-weight:700;color:#111">' + banco + '</div>';
+      html += '<div style="font-size:11px;color:#aaa;margin-top:1px">' + grupoPromos.length + ' ' + (grupoPromos.length===1?'promoci\u00f3n':'promociones') + '</div></div>';
+      html += '<svg class="banco-chevron" width="20" height="20" fill="none" stroke="#aaa" stroke-width="2" viewBox="0 0 24 24" style="transition:transform 0.2s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>';
       html += '</div>';
+      html += '<div id="' + bancoId + '" style="display:none;padding:0 12px 12px">';
       grupoPromos.forEach(function(p){
-        var mesesTranscurridos = p.mesesPagados !== undefined
-          ? p.mesesPagados
-          : Math.min(p.meses, 1 + Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
+        var mesesTranscurridos = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, 1 + Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
         var pct = Math.round((mesesTranscurridos/p.meses)*100);
-        html += '<div style="background:#f8f8f8;border-radius:12px;padding:14px;margin-bottom:10px">';
-        html += '<div style="margin-bottom:10px">';
-        html += '<div style="font-size:15px;font-weight:700;color:#111">' + p.nombre + '</div>';
-        html += '<div style="font-size:12px;color:#888;margin-top:2px">' + (p.comercio?p.comercio+' · ':'') + (p.tarjeta||'') + '</div>';
-        html += '</div>';
-
+        html += '<div style="background:#f8f8f8;border-radius:12px;padding:14px;margin-bottom:8px">';
+        html += '<div style="margin-bottom:10px"><div style="font-size:15px;font-weight:700;color:#111">' + p.nombre + '</div>';
+        html += '<div style="font-size:12px;color:#888;margin-top:2px">' + (p.comercio?p.comercio+' \u00b7 ':'') + (p.tarjeta||'') + '</div></div>';
         html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;margin-bottom:10px">';
         html += '<div style="background:#fff;border-radius:10px;padding:9px 4px;box-shadow:0 1px 4px rgba(0,0,0,0.06)"><div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:3px">Total</div><div style="font-size:13px;font-weight:700;color:#111">' + fmt(p.importe) + '</div></div>';
         html += '<div style="background:#fff;border-radius:10px;padding:9px 4px;box-shadow:0 1px 4px rgba(0,0,0,0.06)"><div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;margin-bottom:3px">Meses</div><div style="font-size:13px;font-weight:700;color:#111">' + p.meses + '</div></div>';
@@ -2148,13 +2144,24 @@ async function renderPromociones(){
         html += '<button data-id="' + p.id + '" class="btn-ver-promo" style="width:100%;padding:10px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Ver promoci\u00f3n</button>';
         html += '</div>';
       });
-      html += '</div>'; // cierre recuadro banco
+      html += '</div>';
+      html += '</div>';
     });
     lista.innerHTML = html;
-  // Event listener para botones ver promoción
-  lista.querySelectorAll('.btn-ver-promo').forEach(function(btn){
-    btn.addEventListener('click', function(){ verPromo(btn.dataset.id); });
-  });
+    lista.querySelectorAll('.btn-ver-promo').forEach(function(btn){
+      btn.addEventListener('click', function(){ verPromo(btn.dataset.id); });
+    });
+    lista.querySelectorAll('.banco-header').forEach(function(header){
+      header.addEventListener('click', function(){
+        var id = header.dataset.banco;
+        var contenido = document.getElementById(id);
+        var chevron = header.querySelector('.banco-chevron');
+        var abierto = contenido.style.display === 'block';
+        contenido.style.display = abierto ? 'none' : 'block';
+        chevron.style.transform = abierto ? '' : 'rotate(180deg)';
+        header.style.borderBottom = abierto ? 'none' : '1px solid #f0f0f0';
+      });
+    });
   }catch(e){ lista.innerHTML = '<div style="text-align:center;color:#bbb;padding:24px">Error al cargar</div>'; }
 }
 
