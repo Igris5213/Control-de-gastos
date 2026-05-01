@@ -291,7 +291,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </button>
       </div>
       <div class="ob-field">
-        <div class="ob-label">Apodo <span style="font-weight:400;color:#aaa">(opcional, para identificarla)</span></div>
+        <div class="ob-label">Tarjeta <span style="font-weight:400;color:#aaa">(opcional, para identificarla)</span></div>
         <input class="ob-input" id="inp-apodo-ob" placeholder="Ej. Tarjeta personal, Nómina, Débito..." maxlength="30" />
       </div>
       <div class="ob-field">
@@ -467,7 +467,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </button>
     </div>
     <div class="field-wrap">
-      <div class="field-label">Apodo <span style="font-weight:400;color:#aaa">(opcional)</span></div>
+      <div class="field-label">Tarjeta <span style="font-weight:400;color:#aaa">(opcional)</span></div>
       <input class="inp" id="apodo-edit-tarjeta" placeholder="Ej. Tarjeta personal, Nómina..." maxlength="30"/>
     </div>
     <div class="field-wrap">
@@ -779,9 +779,8 @@ async function iniciarApp(){
   const mainApp = document.getElementById('main-app');
   mainApp.style.display = 'flex';
   mainApp.classList.add('visible');
-
-  // Saludo
-  // saludo eliminado
+  // Asegurar que Detalle esté activo en el navbar
+  setNavActive('nav-detalle');
 
   // Construir carrusel
   buildCarrusel();
@@ -1223,7 +1222,7 @@ window.renderPerfiles = function(){
         <button onclick="abrirPopupCorteEdit()" class="banco-selector-btn" id="corte-edit-btn" style="margin-bottom:10px">
           <span id="corte-edit-txt">Seleccionar día de corte...</span><span style="color:#aaa;font-size:12px">▾</span>
         </button>
-        <input id="apodo-nueva-edit" placeholder="Apodo (opcional, ej. Nómina, Personal...)" maxlength="30"
+        <input id="apodo-nueva-edit" placeholder="Tarjeta (opcional, ej. Nómina, Personal...)" maxlength="30"
           style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:14px;font-family:inherit;outline:none;background:#fff;margin-bottom:10px"/>
         <div style="position:relative;margin-bottom:10px">
           <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#666;font-size:15px">$</span>
@@ -1919,7 +1918,7 @@ window.confirmarEliminarPerfil = async function(){
   <div style="width:100%;max-width:390px;padding:0 4px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div style="font-size:20px;font-weight:800;color:#111">Perfiles</div>
-      <button onclick="setNavActive('nav-detalle'); irDetalle()" style="background:none;border:none;color:#7c3aed;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">← Volver</button>
+
     </div>
     <div id="perfiles-lista"></div>
   </div>
@@ -1931,7 +1930,7 @@ window.confirmarEliminarPerfil = async function(){
   <div class="ob-card" style="width:100%;max-width:390px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div class="ob-title" style="margin:0">Movimientos</div>
-      <button onclick="setNavActive('nav-detalle');irDetalle()" style="background:none;border:none;color:#7c3aed;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">← Volver</button>
+
     </div>
     <!-- Selector Banco -->
     <div style="margin:0 0 12px;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#4f35b8,#7c3aed);box-shadow:0 2px 8px rgba(124,58,237,0.3)">
