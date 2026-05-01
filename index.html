@@ -972,20 +972,52 @@ window.goTo = function(idx, animate=true){
 }
 
 
+// Días festivos fijos en México (MM-DD)
+const FESTIVOS_MX = [
+  '01-01', // Año Nuevo
+  '02-05', // Día de la Constitución (primer lunes feb, aquí fijo aprox)
+  '03-21', // Natalicio Benito Juárez
+  '05-01', // Día del Trabajo
+  '09-16', // Independencia
+  '11-18', // Revolución Mexicana (tercer lunes nov, aprox)
+  '12-25', // Navidad
+];
+
+function esFestivo(fecha){
+  const mm = String(fecha.getMonth()+1).padStart(2,'0');
+  const dd = String(fecha.getDate()).padStart(2,'0');
+  return FESTIVOS_MX.includes(`${mm}-${dd}`);
+}
+
+// Retroceder al día hábil anterior si cae en fin de semana o festivo
+function diaHabilAnterior(fecha){
+  const d = new Date(fecha);
+  while(d.getDay()===0 || d.getDay()===6 || esFestivo(d)){
+    d.setDate(d.getDate()-1);
+  }
+  return d;
+}
+
 function getPeriodo(corte, ref=today){
-  // ref puede ser Date o usar today por defecto
   const r = ref instanceof Date ? ref : today;
   const d=r.getDate(), m=r.getMonth(), y=r.getFullYear();
-  let inicio, fin;
+  let inicioRaw, finRaw;
   if(d<=corte){
     const pm=m===0?11:m-1, py=m===0?y-1:y;
-    inicio=new Date(py,pm,corte+1);
-    fin=new Date(y,m,corte);
+    inicioRaw=new Date(py,pm,corte+1);
+    finRaw=new Date(y,m,corte);
   } else {
-    inicio=new Date(y,m,corte+1);
+    inicioRaw=new Date(y,m,corte+1);
     const nm=m===11?0:m+1, ny=m===11?y+1:y;
-    fin=new Date(ny,nm,corte);
+    finRaw=new Date(ny,nm,corte);
   }
+  // Ajustar fin al día hábil anterior si cae en finde o festivo
+  const fin = diaHabilAnterior(finRaw);
+  // Inicio = día siguiente al fin del período anterior
+  const inicioAdj = new Date(fin);
+  inicioAdj.setDate(inicioAdj.getDate() - 29); // aprox 30 días antes
+  // Mantener inicio como el día siguiente al corte anterior
+  const inicio = inicioRaw;
   const dias = Math.max(0,Math.ceil((fin-today)/86400000));
   return { inicio, fin, dias };
 }
