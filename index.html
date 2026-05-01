@@ -6,76 +6,76 @@
 <title>Control de Gastos</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f5f9;min-height:100vh;display:flex;justify-content:center}
-.app{width:100%;max-width:430px;background:#f4f5f9;min-height:100vh;display:flex;flex-direction:column;position:relative}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;min-height:100vh;display:flex;justify-content:center}
+.app{width:100%;max-width:430px;background:#f5f5f5;min-height:100vh;display:flex;flex-direction:column;position:relative}
 
 /* ── PANTALLAS DE ONBOARDING ── */
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;z-index:200;padding:24px 24px 90px;background:#f4f5f9;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;z-index:200;padding:24px 24px 90px;background:#f5f5f5;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .screen::-webkit-scrollbar{display:none}
 .screen.hidden{display:none}
 
 /* Bienvenida */
-.welcome-icon{width:90px;height:90px;border-radius:28px;background:linear-gradient(180deg,#1a2e5a,#7c3aed);display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 8px 32px rgba(124,58,237,0.3)}
+.welcome-icon{width:90px;height:90px;border-radius:28px;background:linear-gradient(180deg,#111,#444);display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 8px 32px rgba(0,0,0,0.2)}
 .welcome-title{font-size:28px;font-weight:800;color:#111;text-align:center;margin-bottom:12px}
 .welcome-sub{font-size:15px;color:#888;text-align:center;line-height:1.5;margin-bottom:48px}
-.primary-btn{width:100%;padding:16px;border-radius:14px;background:linear-gradient(180deg,#2d8a4e,#4ade80);color:#fff;border:none;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px}
+.primary-btn{width:100%;padding:16px;border-radius:14px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px}
 .primary-btn:active{transform:scale(0.98)}
 
 /* Formularios onboarding */
 .ob-card{width:100%;max-width:390px;background:#fff;border-radius:24px;padding:28px 24px;box-shadow:0 4px 24px rgba(0,0,0,0.08)}
-.ob-step{font-size:12px;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
+.ob-step{font-size:12px;font-weight:600;color:#444;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
 .ob-title{font-size:22px;font-weight:800;color:#111;margin-bottom:6px}
 .ob-sub{font-size:14px;color:#888;margin-bottom:24px}
 .ob-field{margin-bottom:16px}
 .ob-label{font-size:13px;font-weight:600;color:#555;margin-bottom:6px}
-.ob-input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid #e5e7eb;font-size:15px;font-family:inherit;outline:none;color:#111;background:#fff}
-.ob-input:focus{border-color:#7c3aed}
+.ob-input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid #e0e0e0;font-size:15px;font-family:inherit;outline:none;color:#111;background:#fff}
+.ob-input:focus{border-color:#111}
 .ob-prefix-wrap{position:relative}
 .ob-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:#666}
 .ob-input-prefix{padding-left:28px}
-.ob-back{background:none;border:none;color:#2d8a4e;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;width:100%;text-align:center}
+.ob-back{background:none;border:none;color:#444;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;width:100%;text-align:center}
 
 /* Tarjetas agregadas en onboarding */
 .added-cards{margin-bottom:16px;display:flex;flex-direction:column;gap:8px}
-.added-card-item{background:#f4f5f9;border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+.added-card-item{background:#f5f5f5;border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
 .added-card-name{font-size:14px;font-weight:600;color:#111}
 .added-card-info{font-size:12px;color:#888;margin-top:2px}
-.added-card-del{background:none;border:none;color:#ef4444;font-size:18px;cursor:pointer;padding:0 4px}
-.add-another{width:100%;padding:12px;border-radius:12px;border:1.5px dashed #7c3aed;background:none;color:#7c3aed;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:16px}
+.added-card-del{background:none;border:none;color:#888;font-size:18px;cursor:pointer;padding:0 4px}
+.add-another{width:100%;padding:12px;border-radius:12px;border:1.5px dashed #ccc;background:none;color:#444;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:16px}
 
 /* Botones acción onboarding */
 .ob-action-btns{display:flex;flex-direction:column;gap:10px;margin-top:6px}
-.ob-btn-agregar{width:100%;padding:14px;border-radius:12px;background:linear-gradient(180deg,#2d8a4e,#4ade80);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+.ob-btn-agregar{width:100%;padding:14px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
 .ob-btn-agregar:active{transform:scale(0.98)}
-.ob-btn-terminar{width:100%;padding:13px;border-radius:12px;background:#fff;border:1.5px solid #2d8a4e;color:#2d8a4e;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+.ob-btn-terminar{width:100%;padding:13px;border-radius:12px;background:#fff;border:1.5px solid #111;color:#111;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
 .ob-btn-terminar:active{transform:scale(0.98)}
 .ob-btn-volver{width:100%;padding:10px;border-radius:12px;background:none;border:none;color:#aaa;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
 
 /* Botón selector banco */
-.banco-selector-btn{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid #e5e7eb;background:#fff;font-size:15px;font-family:inherit;color:#999;cursor:pointer;display:flex;align-items:center;justify-content:space-between;text-align:left;transition:border-color 0.2s}
-.banco-selector-btn:hover{border-color:#7c3aed}
-.banco-selector-btn.selected{color:#111;border-color:#7c3aed}
+.banco-selector-btn{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid #e0e0e0;background:#fff;font-size:15px;font-family:inherit;color:#999;cursor:pointer;display:flex;align-items:center;justify-content:space-between;text-align:left;transition:border-color 0.2s}
+.banco-selector-btn:hover{border-color:#111}
+.banco-selector-btn.selected{color:#111;border-color:#111}
 
 /* Popup lista bancos */
 .banco-popup-list{display:flex;flex-direction:column;max-height:55vh;overflow-y:auto;gap:2px;-webkit-overflow-scrolling:touch}
 .banco-popup-item{display:flex;align-items:center;padding:14px 4px;border-bottom:1px solid #f0f0f0;font-size:15px;font-weight:500;color:#111;cursor:pointer;transition:all 0.15s}
 .banco-popup-item:last-child{border-bottom:none}
-.banco-popup-item:hover{color:#7c3aed}
-.banco-popup-item.active{color:#7c3aed;font-weight:700}
+.banco-popup-item:hover{color:#444}
+.banco-popup-item.active{color:#111;font-weight:700}
 .banco-check{width:20px;height:20px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s}
-.banco-check.checked{background:#7c3aed;border-color:#7c3aed;color:#fff;font-size:12px}
+.banco-check.checked{background:#111;border-color:#111;color:#fff;font-size:12px}
 
 /* Chips de fecha de corte */
 .corte-list{display:flex;flex-wrap:wrap;gap:8px}
-.corte-item{padding:8px 14px;border-radius:20px;border:1.5px solid #e5e7eb;font-size:14px;font-weight:500;color:#555;cursor:pointer;transition:all 0.15s}
-.corte-item:hover{border-color:#7c3aed;color:#7c3aed}
-.corte-item.selected{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600}
+.corte-item{padding:8px 14px;border-radius:20px;border:1.5px solid #e0e0e0;font-size:14px;font-weight:500;color:#555;cursor:pointer;transition:all 0.15s}
+.corte-item:hover{border-color:#111;color:#111}
+.corte-item.selected{background:#111;border-color:#111;color:#fff;font-weight:600}
 
 /* ── APP PRINCIPAL ── */
 .main-app{display:none;flex-direction:column;width:100%}
 .main-app.visible{display:flex;flex-direction:column;min-height:100vh;width:100%}
-.topbar{background:#f4f5f9;padding:16px 20px 8px;display:flex;align-items:center;justify-content:center;position:relative}
-.top-section{background:#f4f5f9}
+.topbar{background:#f5f5f5;padding:16px 20px 8px;display:flex;align-items:center;justify-content:center;position:relative}
+.top-section{background:#f5f5f5}
 .topbar-title{font-size:20px;font-weight:700;color:#111;text-align:center}
 .topbar-settings{position:absolute;right:20px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:4px}
 
@@ -102,7 +102,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   width:100%;
 }
 
-/* CSS tarjeta rediseñada */
+/* CSS tarjeta */
 .card-top-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
 .card-bank-name{font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.3px}
 .card-badge{display:none;align-items:center;gap:5px;background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.55);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:#fff}
@@ -110,7 +110,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-lim-val{font-size:28px;font-weight:700;color:#fff;margin-bottom:12px}
 .card-use-row{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.85);margin-bottom:8px}
 .card-use-bar{height:7px;background:rgba(255,255,255,0.22);border-radius:4px;overflow:hidden;margin-bottom:8px}
-.card-use-fill{height:100%;background:#00d4aa;border-radius:4px;transition:width 0.5s}
+.card-use-fill{height:100%;background:#fff;border-radius:4px;transition:width 0.5s}
 .card-use-pct{font-size:13px;font-weight:500;color:rgba(255,255,255,0.9);margin-bottom:14px}
 .card-divider{height:1px;background:rgba(255,255,255,0.2);margin-bottom:14px}
 .card-corte-row{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:14px}
@@ -120,13 +120,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-stats-gasto{font-weight:600;margin-bottom:3px}
 .card-stats-dias{display:flex;align-items:center;gap:4px;font-size:12px;color:rgba(255,255,255,0.75)}
 
-/* Colores de tarjetas */
-.card-color-0{background:linear-gradient(180deg,#1a2e5a,#243d75)}
-.card-color-1{background:linear-gradient(180deg,#5b21b6,#7c3aed)}
-.card-color-2{background:linear-gradient(180deg,#065f46,#059669)}
-.card-color-3{background:linear-gradient(180deg,#92400e,#d97706)}
-.card-color-4{background:linear-gradient(180deg,#7f1d1d,#dc2626)}
-.card-color-5{background:linear-gradient(180deg,#1e3a5f,#2563eb)}
+/* Colores de tarjetas — negro y gris para genéricos, corporativos para bancos */
+.card-color-0{background:linear-gradient(180deg,#111,#333)}
+.card-color-1{background:linear-gradient(180deg,#222,#555)}
+.card-color-2{background:linear-gradient(180deg,#1a1a1a,#444)}
+.card-color-3{background:linear-gradient(180deg,#2a2a2a,#666)}
+.card-color-4{background:linear-gradient(180deg,#0a0a0a,#222)}
+.card-color-5{background:linear-gradient(180deg,#333,#777)}
 .card-color-invex{background:linear-gradient(180deg,#7a0026,#c0003a)}
 .card-color-bbva{background:linear-gradient(180deg,#00205b,#0d3291)}
 .card-color-santander{background:linear-gradient(180deg,#cc0000,#ff1a1a)}
@@ -134,55 +134,61 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* DOTS */
 .dots{display:flex;justify-content:center;gap:7px;margin:14px 0 6px}
 .dot{width:8px;height:8px;border-radius:50%;background:#ccc;transition:all 0.25s;cursor:pointer}
-.dot.active{background:#4f35b8;width:22px;border-radius:4px}
+.dot.active{background:#111;width:22px;border-radius:4px}
 
 /* RECUADROS */
-.section-card{background:#fff;border-radius:16px;margin:0 16px 12px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,0.07)}
-.section-card-title{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
+.section-card{background:#fff;border-radius:16px;margin:0 16px 12px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.section-card-title{font-size:13px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
 
 /* BOTÓN */
 .save-wrap{padding:0}
-.save-btn-main{width:100%;padding:16px;border-radius:12px;background:linear-gradient(180deg,#2d8a4e,#4ade80);color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit}
+.save-btn-main{width:100%;padding:16px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit}
 .save-btn-main:active{transform:scale(0.98)}
 
 /* MOVIMIENTOS */
-.mov-section{padding:0 0 40px;background:#f4f5f9}
-.mov-title{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
-.mov-item{background:#f4f5f9;border-radius:10px;padding:10px 4px;margin-bottom:4px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f0f0f0}
+.mov-section{padding:0 0 40px;background:#f5f5f5}
+.mov-title{font-size:13px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
+.mov-item{background:#f5f5f5;border-radius:10px;padding:10px 8px;margin-bottom:4px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #eee;cursor:pointer;transition:background 0.2s,box-shadow 0.2s,transform 0.15s}
 .mov-item:last-child{border-bottom:none;margin-bottom:0}
-.mov-icon{width:38px;height:38px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mov-item.selected{background:linear-gradient(180deg,#111,#444);border-bottom-color:transparent;box-shadow:0 4px 14px rgba(0,0,0,0.18);transform:scale(1.01);border-radius:12px;z-index:1;position:relative;color:#fff}
+.mov-item.selected .mov-date{color:rgba(255,255,255,0.8)}
+.mov-item.selected .mov-amount{color:#fff}
+.mov-item.selected .mov-icon{background:rgba(255,255,255,0.15)}
+.mov-item.selected .edit-btn{color:rgba(255,255,255,0.8)}
+.mov-item.selected .del-btn2{color:rgba(255,255,255,0.6)}
+.mov-icon{width:38px;height:38px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .mov-info{flex:1;min-width:0}
-.mov-date{font-size:13px;color:#555;font-weight:500}
+.mov-date{font-size:13px;color:#666;font-weight:500}
 .mov-amount{font-size:15px;font-weight:700;color:#111;margin-right:4px;white-space:nowrap}
 .mov-actions{display:flex;gap:4px;flex-shrink:0}
 .edit-btn,.del-btn2{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px}
-.edit-btn{color:#7c3aed}.del-btn2{color:#ef4444}
-.edit-btn:hover{background:#ede9fe}.del-btn2:hover{background:#fee2e2}
-.empty-mov{text-align:center;color:#bbb;font-size:14px;padding:2rem 0}
+.edit-btn{color:#444}.del-btn2{color:#888}
+.edit-btn:hover{background:#f0f0f0}.del-btn2:hover{background:#f0f0f0}
+.empty-mov{text-align:center;color:#ccc;font-size:14px;padding:2rem 0}
 
 /* MODALES */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal{background:#fff;border-radius:24px;padding:24px 20px 40px;width:100%;max-width:430px;transform:translateY(100%);transition:transform 0.3s}
 .modal-overlay.open .modal{transform:translateY(0)}
 /* Date Picker */
 #scroll-anio::-webkit-scrollbar,#scroll-mes::-webkit-scrollbar,#scroll-dia::-webkit-scrollbar{display:none}
-.scroll-item{height:60px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#bbb;cursor:pointer;scroll-snap-align:center;transition:color 0.2s,font-size 0.2s}
+.scroll-item{height:60px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#ccc;cursor:pointer;scroll-snap-align:center;transition:color 0.2s,font-size 0.2s}
 .scroll-item.sel{color:#111;font-size:22px;font-weight:700}
-.modal-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 20px}
+.modal-handle{width:40px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px}
 .modal-title{font-size:18px;font-weight:700;color:#111;margin-bottom:20px}
 .field-label{font-size:13px;color:#666;margin-bottom:6px;font-weight:500}
 .field-wrap{margin-bottom:14px}
-.inp{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:15px;background:#fff;color:#111;font-family:inherit;outline:none}
-.inp:focus{border-color:#7c3aed}
+.inp{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #e0e0e0;font-size:15px;background:#fff;color:#111;font-family:inherit;outline:none}
+.inp:focus{border-color:#111}
 .amount-wrap{position:relative}
 .amount-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#666;font-size:15px}
-.amount-inp{width:100%;padding:12px 14px 12px 28px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:16px;background:#fff;color:#111;font-family:inherit;outline:none}
-.amount-inp:focus{border-color:#7c3aed}
-.modal-save{width:100%;padding:14px;border-radius:12px;background:linear-gradient(180deg,#2d8a4e,#4ade80);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px}
+.amount-inp{width:100%;padding:12px 14px 12px 28px;border-radius:10px;border:1.5px solid #e0e0e0;font-size:16px;background:#fff;color:#111;font-family:inherit;outline:none}
+.amount-inp:focus{border-color:#111}
+.modal-save{width:100%;padding:14px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px}
 .modal-save:disabled{opacity:0.6}
 
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 22px;border-radius:20px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200;white-space:nowrap}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 22px;border-radius:20px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200;white-space:nowrap}
 .toast.show{opacity:1}
 
 /* ── NAVBAR INFERIOR ── */
@@ -224,13 +230,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 }
 
 .nav-item.active{
-  color:#7c3aed;
+  color:#111;
   font-weight:700;
-  background:#ede9fe;
+  background:#f0f0f0;
   transform:scale(1.0);
   padding:6px 12px;
   border-radius:14px;
-  box-shadow:0 2px 8px rgba(124,58,237,0.15);
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
 }
 
 .nav-item.active svg{
@@ -503,7 +509,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
     <button class="modal-save" onclick="guardarEdicionTarjeta()">Guardar cambios</button>
-    <button onclick="document.getElementById('edit-tarjeta-overlay').classList.remove('open')" style="padding:14px;border-radius:12px;border:none;background:linear-gradient(180deg,#b91c1c,#ef4444);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
+    <button onclick="document.getElementById('edit-tarjeta-overlay').classList.remove('open')" style="padding:14px;border-radius:12px;border:none;background:linear-gradient(180deg,#333,#666);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
   </div>
   </div>
 </div>
@@ -520,7 +526,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
       <button onclick="closeConfirm()" style="padding:13px;border-radius:12px;border:1.5px solid #e5e7eb;background:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#666">Cancelar</button>
-      <button id="confirm-del-btn" onclick="confirmarEliminar()" style="padding:13px;border-radius:12px;border:none;background:linear-gradient(180deg,#b91c1c,#ef4444);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Eliminar</button>
+      <button id="confirm-del-btn" onclick="confirmarEliminar()" style="padding:13px;border-radius:12px;border:none;background:linear-gradient(180deg,#333,#666);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Eliminar</button>
     </div>
   </div>
 </div>
@@ -539,7 +545,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
       <button class="modal-save" id="modal-save-btn" onclick="guardar()" style="margin-top:0">Guardar</button>
-      <button onclick="document.getElementById('modal-overlay').classList.remove('open')" style="padding:13px;border-radius:12px;border:none;background:linear-gradient(180deg,#b91c1c,#ef4444);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#fff">Cancelar</button>
+      <button onclick="document.getElementById('modal-overlay').classList.remove('open')" style="padding:13px;border-radius:12px;border:none;background:linear-gradient(180deg,#333,#666);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#fff">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1050,13 +1056,13 @@ function renderMovimientos(){
 
   if(!filtrados.length){ el.innerHTML=`<div class="empty-mov">Sin movimientos en el corte actual</div>`; return; }
   el.innerHTML = filtrados.map(m=>`
-    <div class="mov-item">
+    <div class="mov-item" onclick="resaltarMov(this)">
       <div class="mov-icon"><svg width="16" height="16" fill="none" stroke="#7c3aed" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg></div>
       <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
       <div class="mov-amount">-${fmt(m.monto)}</div>
       <div class="mov-actions">
-        <button class="edit-btn" onclick="openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="del-btn2" onclick="eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+        <button class="edit-btn" onclick="event.stopPropagation();openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="del-btn2" onclick="event.stopPropagation();eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </div>
     </div>`).join('');
 }
@@ -1255,7 +1261,7 @@ window.renderPerfiles = function(){
         <div style="flex:1">
           <div style="font-size:16px;font-weight:700;color:#111">${perfil.nombre}</div>
         </div>
-        <div style="background:#eef6ee;color:#2d7a2d;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px">Activo</div>
+        <div style="background:#111;color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px">Activo</div>
         <button onclick="toggleEdicion()" style="background:${modoEdicion?'#7c3aed':'#f0eeff'};color:${modoEdicion?'#fff':'#7c3aed'};border:none;border-radius:10px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
           ${modoEdicion ? '✓ Listo' : '✏️ Editar'}
         </button>
@@ -1271,7 +1277,7 @@ window.renderPerfiles = function(){
               <div style="font-size:11px;color:#888">Corte día ${t.corte} · Límite $${t.limite.toLocaleString('es-MX')}</div>
             </div>
             ${modoEdicion ? `
-              <button onclick="abrirEditarTarjeta('${t.id}')" style="background:#ede9fe;border:none;border-radius:8px;padding:6px 10px;color:#7c3aed;font-size:13px;cursor:pointer;margin-right:4px">✏️</button>
+              <button onclick="abrirEditarTarjeta('${t.id}')" style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 10px;color:#111;font-size:13px;cursor:pointer;margin-right:4px">✏️</button>
               <button onclick="eliminarTarjetaPerfil('${t.id}')" style="background:#fee2e2;border:none;border-radius:8px;padding:6px 10px;color:#ef4444;font-size:13px;cursor:pointer">🗑</button>
             ` : ''}
           </div>`).join('')}
@@ -1281,7 +1287,7 @@ window.renderPerfiles = function(){
       ${modoEdicion ? `
       <!-- Botón para mostrar formulario -->
       <button id="btn-mostrar-form-tarjeta" onclick="mostrarFormAgregarTarjeta()"
-        style="margin-top:14px;width:100%;padding:12px;border-radius:10px;border:none;background:#f0eeff;color:#7c3aed;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+        style="margin-top:14px;width:100%;padding:12px;border-radius:10px;border:none;background:#f0f0f0;color:#111;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
         + Agregar tarjeta
       </button>
 
@@ -1589,13 +1595,13 @@ function renderMovimientosFull(tarjetaId){
     return;
   }
   el.innerHTML = data.map(m=>`
-    <div class="mov-item">
+    <div class="mov-item" onclick="resaltarMov(this)">
       <div class="mov-icon"><svg width="16" height="16" fill="none" stroke="#7c3aed" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg></div>
       <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
       <div class="mov-amount">-${fmt(m.monto)}</div>
       <div class="mov-actions">
-        <button class="edit-btn" onclick="openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="del-btn2" onclick="eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+        <button class="edit-btn" onclick="event.stopPropagation();openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="del-btn2" onclick="event.stopPropagation();eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </div>
     </div>`).join('');
 }
@@ -1771,8 +1777,8 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
         <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
         <div class="mov-amount">-${fmt(m.monto)}</div>
         <div class="mov-actions">
-          <button class="edit-btn" onclick="openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="del-btn2" onclick="eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+          <button class="edit-btn" onclick="event.stopPropagation();openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="del-btn2" onclick="event.stopPropagation();eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
         </div>
       </div>`).join('');
   };
@@ -1783,13 +1789,13 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
     return;
   }
   el.innerHTML = data.map(m=>`
-    <div class="mov-item">
+    <div class="mov-item" onclick="resaltarMov(this)">
       <div class="mov-icon"><svg width="16" height="16" fill="none" stroke="#7c3aed" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg></div>
       <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
       <div class="mov-amount">-${fmt(m.monto)}</div>
       <div class="mov-actions">
-        <button class="edit-btn" onclick="openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="del-btn2" onclick="eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+        <button class="edit-btn" onclick="event.stopPropagation();openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="del-btn2" onclick="event.stopPropagation();eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
       </div>
     </div>`).join('');
 }
@@ -1817,6 +1823,15 @@ window.nuevaBusqueda = function(){
   document.querySelectorAll('#lista-bancos-btns div').forEach(b=>{
     b.style.background='#fff'; b.style.color='#111'; b.style.fontWeight='500';
   });
+}
+
+window.resaltarMov = function(el){
+  // Quitar resaltado de todos
+  document.querySelectorAll('#mov-list .mov-item').forEach(i=>i.classList.remove('selected'));
+  // Resaltar el seleccionado
+  el.classList.add('selected');
+  // Quitar resaltado después de 2s
+  setTimeout(()=>el.classList.remove('selected'), 2000);
 }
 
 window.setNavActive = function(id){
@@ -1920,7 +1935,7 @@ window.confirmarEliminarPerfil = async function(){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
       <button class="modal-save" onclick="guardarExt()" style="margin-top:0">Guardar</button>
-      <button onclick="document.getElementById('modal-ext-overlay').classList.remove('open')" style="padding:13px;border-radius:12px;border:none;background:linear-gradient(180deg,#b91c1c,#ef4444);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#fff">Cancelar</button>
+      <button onclick="document.getElementById('modal-ext-overlay').classList.remove('open')" style="padding:13px;border-radius:12px;border:none;background:linear-gradient(180deg,#333,#666);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#fff">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2229,10 +2244,10 @@ window.confirmarEliminarPerfil = async function(){
 
     </div>
     <!-- Selector Banco -->
-    <div style="margin:0 0 12px;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#2d8a4e,#4ade80);box-shadow:0 2px 8px rgba(124,58,237,0.3)">
+    <div style="margin:0 0 12px;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#2d8a4e,#4ade80);box-shadow:0 2px 8px rgba(0,0,0,0.2)">
       <div onclick="toggleDropdown('dd-bancos')" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer">
         <div>
-          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Banco</div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Banco</div>
           <div id="banco-seleccionado-txt" style="font-size:16px;font-weight:700;color:#fff">Seleccionar banco</div>
         </div>
         <svg id="dd-bancos-icon" width="20" height="20" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" viewBox="0 0 24 24" style="transition:transform 0.2s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
@@ -2246,7 +2261,7 @@ window.confirmarEliminarPerfil = async function(){
     <div id="paso-apodo" style="display:none;margin:0 0 12px;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#1a2e5a,#243d75);box-shadow:0 2px 8px rgba(26,46,90,0.3)">
       <div onclick="toggleDropdown('dd-tarjetas')" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer">
         <div>
-          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Tarjeta</div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Tarjeta</div>
           <div id="tarjeta-seleccionada-txt" style="font-size:16px;font-weight:700;color:#fff">Seleccionar tarjeta</div>
         </div>
         <svg id="dd-tarjetas-icon" width="20" height="20" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" viewBox="0 0 24 24" style="transition:transform 0.2s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
@@ -2257,10 +2272,10 @@ window.confirmarEliminarPerfil = async function(){
     </div>
 
     <!-- Selector Año -->
-    <div id="paso-anio" style="display:none;margin:0 0 12px;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#065f46,#059669);box-shadow:0 2px 8px rgba(6,95,70,0.3)">
+    <div id="paso-anio" style="display:none;margin:0 0 12px;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#111,#444);box-shadow:0 2px 8px rgba(6,95,70,0.3)">
       <div onclick="toggleDropdown('dd-anios')" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer">
         <div>
-          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Año</div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Año</div>
           <div id="anio-seleccionado-txt" style="font-size:16px;font-weight:700;color:#fff">Seleccionar año</div>
         </div>
         <svg id="dd-anios-icon" width="20" height="20" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" viewBox="0 0 24 24" style="transition:transform 0.2s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
@@ -2274,7 +2289,7 @@ window.confirmarEliminarPerfil = async function(){
     <div id="paso-corte" style="display:none;margin:0 0 12px;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#92400e,#d97706);box-shadow:0 2px 8px rgba(146,64,14,0.3)">
       <div onclick="toggleDropdown('dd-cortes')" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer">
         <div>
-          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Corte</div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Corte</div>
           <div id="corte-seleccionado-txt" style="font-size:16px;font-weight:700;color:#fff">Seleccionar corte</div>
         </div>
         <svg id="dd-cortes-icon" width="20" height="20" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" viewBox="0 0 24 24" style="transition:transform 0.2s;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
@@ -2285,7 +2300,7 @@ window.confirmarEliminarPerfil = async function(){
     </div>
 
     <!-- Botón nueva búsqueda -->
-    <button id="btn-nueva-busqueda" onclick="nuevaBusqueda()" style="display:none;width:100%;margin:0 0 12px;padding:14px;border-radius:14px;background:linear-gradient(135deg,#065f46,#059669);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;align-items:center;justify-content:center;gap:8px">
+    <button id="btn-nueva-busqueda" onclick="nuevaBusqueda()" style="display:none;width:100%;margin:0 0 12px;padding:14px;border-radius:14px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;align-items:center;justify-content:center;gap:8px">
       ↩ Nueva búsqueda
     </button>
 
@@ -2307,7 +2322,7 @@ window.confirmarEliminarPerfil = async function(){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button onclick="cerrarModalBanco()" style="padding:13px;border-radius:12px;border:1px solid #ddd;background:#fff">Cancelar</button>
-      <button onclick="confirmarEliminarBanco()" style="padding:13px;border-radius:12px;background:linear-gradient(180deg,#b91c1c,#ef4444);color:#fff;border:none">Eliminar</button>
+      <button onclick="confirmarEliminarBanco()" style="padding:13px;border-radius:12px;background:linear-gradient(180deg,#333,#666);color:#fff;border:none">Eliminar</button>
     </div>
   </div>
 </div>
@@ -2320,7 +2335,7 @@ window.confirmarEliminarPerfil = async function(){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button onclick="cerrarModalPerfil()" style="padding:13px;border-radius:12px;border:1px solid #ddd;background:#fff">Cancelar</button>
-      <button onclick="confirmarEliminarPerfil()" style="padding:13px;border-radius:12px;background:linear-gradient(180deg,#b91c1c,#ef4444);color:#fff;border:none">Eliminar</button>
+      <button onclick="confirmarEliminarPerfil()" style="padding:13px;border-radius:12px;background:linear-gradient(180deg,#333,#666);color:#fff;border:none">Eliminar</button>
     </div>
   </div>
 </div>
