@@ -1154,9 +1154,7 @@ window.closeConfirm = function(e){
 
 // ── Settings placeholder ─────────────────────────
 window.abrirSettings = function(){
-  if(confirm('¿Eliminar perfil? Esto borrará tus tarjetas configuradas (los movimientos se conservan).')){
-    eliminarPerfil();
-  }
+  document.getElementById('modal-eliminar-perfil').classList.add('open');
 }
 
 async function eliminarPerfil(){
