@@ -94,12 +94,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   color:#fff;
   box-sizing:border-box;
   min-height:240px;
+  opacity:0;
+  transform:scale(0.92) translateY(8px);
+  transition:opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.2,0.64,1);
 }
 .bank-card.active-card{
   display:flex;
   flex-direction:column;
   justify-content:space-between;
   width:100%;
+  opacity:1;
+  transform:scale(1) translateY(0);
 }
 
 /* CSS tarjeta */
@@ -931,11 +936,27 @@ window.goTo = function(idx, animate=true){
   if(!perfil) return;
   const n = perfil.tarjetas.length;
   idx = Math.max(0, Math.min(idx, n-1));
+  // Ocultar la tarjeta actual con animación de salida
+  const prev = document.querySelector('.bank-card.active-card');
+  if(prev && idx !== current){
+    prev.style.opacity = '0';
+    prev.style.transform = 'scale(0.92) translateY(8px)';
+  }
   current = idx;
-  // Mostrar solo la tarjeta activa
-  document.querySelectorAll('.bank-card').forEach((c,i)=>{
-    c.classList.toggle('active-card', i===idx);
-  });
+  // Mostrar nueva tarjeta con animación de entrada
+  setTimeout(()=>{
+    document.querySelectorAll('.bank-card').forEach((c,i)=>{
+      if(i !== idx){
+        c.classList.remove('active-card');
+        c.style.opacity = '';
+        c.style.transform = '';
+      }
+    });
+    const next = document.querySelectorAll('.bank-card')[idx];
+    if(next){
+      next.classList.add('active-card');
+    }
+  }, animate && prev ? 120 : 0);
   document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
   renderMovimientos();
   updateCards();
