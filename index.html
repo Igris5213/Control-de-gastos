@@ -1283,8 +1283,10 @@ function showSuccess(titulo='Movimiento guardado', subtitulo='Tu gasto fue regis
 
 window.showSobregiro = function(tarjeta, exceso){
   const el = document.getElementById('sobregiro-sub');
-  if(el) el.textContent = 'Has excedido el límite de ' + tarjeta.nombre + 
-    (tarjeta.apodo ? ' (' + tarjeta.apodo + ')' : '') + ' por ' + fmt(exceso);
+  if(el){
+    const nombre = tarjeta.apodo || tarjeta.nombre;
+    el.innerHTML = 'Has excedido el límite de tu tarjeta <strong>' + nombre + '</strong> por <strong>' + fmt(exceso) + '</strong>';
+  }
   const ov = document.getElementById('sobregiro-overlay');
   if(ov) ov.classList.add('show');
 }
