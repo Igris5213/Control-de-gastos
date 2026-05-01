@@ -1231,24 +1231,41 @@ window.renderPerfiles = function(){
 
       <!-- Formulario agregar tarjeta (solo en modo edición) -->
       ${modoEdicion ? `
-      <div id="form-edit-tarjeta" style="margin-top:14px;background:#f4f5f9;border-radius:12px;padding:14px">
-        <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:12px">Agregar tarjeta</div>
-        <button onclick="abrirPopupBancoEdit()" class="banco-selector-btn" id="banco-edit-btn" style="margin-bottom:10px">
+      <!-- Botón para mostrar formulario -->
+      <button id="btn-mostrar-form-tarjeta" onclick="mostrarFormAgregarTarjeta()"
+        style="margin-top:14px;width:100%;padding:12px;border-radius:10px;border:none;background:#f0eeff;color:#7c3aed;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+        + Agregar tarjeta
+      </button>
+
+      <!-- Formulario oculto inicialmente -->
+      <div id="form-edit-tarjeta" style="display:none;margin-top:12px;background:#f4f5f9;border-radius:12px;padding:14px">
+        <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:12px">Nueva tarjeta</div>
+
+        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Banco</div>
+        <button onclick="abrirPopupBancoEdit()" class="banco-selector-btn" id="banco-edit-btn" style="margin-bottom:12px">
           <span id="banco-edit-txt">Seleccionar banco...</span><span style="color:#aaa;font-size:12px">▾</span>
         </button>
-        <button onclick="abrirPopupCorteEdit()" class="banco-selector-btn" id="corte-edit-btn" style="margin-bottom:10px">
+
+        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Corte</div>
+        <button onclick="abrirPopupCorteEdit()" class="banco-selector-btn" id="corte-edit-btn" style="margin-bottom:12px">
           <span id="corte-edit-txt">Seleccionar día de corte...</span><span style="color:#aaa;font-size:12px">▾</span>
         </button>
-        <input id="apodo-nueva-edit" placeholder="Tarjeta (opcional, ej. Nómina, Personal...)" maxlength="30"
-          style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:14px;font-family:inherit;outline:none;background:#fff;margin-bottom:10px"/>
-        <div style="position:relative;margin-bottom:10px">
+
+        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Tarjeta <span style="font-weight:400;color:#aaa">(opcional)</span></div>
+        <input id="apodo-nueva-edit" placeholder="Ej. Nómina, Personal, Débito..." maxlength="30"
+          style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:14px;font-family:inherit;outline:none;background:#fff;margin-bottom:12px"/>
+
+        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Límite de gasto</div>
+        <div style="position:relative;margin-bottom:14px">
           <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#666;font-size:15px">$</span>
-          <input id="limite-edit" type="number" placeholder="Límite de gasto" min="0" step="100"
+          <input id="limite-edit" type="number" placeholder="0.00" min="0" step="100"
             style="width:100%;padding:12px 14px 12px 28px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:15px;font-family:inherit;outline:none;background:#fff"/>
         </div>
-        <button onclick="guardarNuevaTarjeta()" style="width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#4f35b8,#7c3aed);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
-          + Agregar tarjeta
-        </button>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onclick="ocultarFormAgregarTarjeta()" style="padding:11px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;color:#666;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
+          <button onclick="guardarNuevaTarjeta()" style="padding:11px;border-radius:10px;background:linear-gradient(135deg,#4f35b8,#7c3aed);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Guardar</button>
+        </div>
       </div>` : ''}
 
       <!-- Botón eliminar perfil -->
@@ -1310,6 +1327,27 @@ window.guardarEdicionTarjeta = async function(){
   } catch(e){ showToast('❌ Error al guardar'); }
 }
 
+window.mostrarFormAgregarTarjeta = function(){
+  document.getElementById('form-edit-tarjeta').style.display = 'block';
+  document.getElementById('btn-mostrar-form-tarjeta').style.display = 'none';
+  // Resetear campos
+  selectedBancoEdit = '';
+  selectedCorteEdit = null;
+  const bt = document.getElementById('banco-edit-btn');
+  const ct = document.getElementById('corte-edit-btn');
+  if(bt){ bt.classList.remove('selected'); document.getElementById('banco-edit-txt').textContent='Seleccionar banco...'; }
+  if(ct){ ct.classList.remove('selected'); document.getElementById('corte-edit-txt').textContent='Seleccionar día de corte...'; }
+  const ap = document.getElementById('apodo-nueva-edit');
+  const li = document.getElementById('limite-edit');
+  if(ap) ap.value='';
+  if(li) li.value='';
+}
+
+window.ocultarFormAgregarTarjeta = function(){
+  document.getElementById('form-edit-tarjeta').style.display = 'none';
+  document.getElementById('btn-mostrar-form-tarjeta').style.display = 'block';
+}
+
 window.toggleEdicion = function(){
   modoEdicion = !modoEdicion;
   selectedBancoEdit = '';
@@ -1317,6 +1355,14 @@ window.toggleEdicion = function(){
   // Al salir del modo edición (Listo), reconstruir el carrusel con los cambios
   if(!modoEdicion){
     buildCarrusel();
+  } else {
+    // Al entrar en edición, asegurarse de que el form esté oculto
+    setTimeout(()=>{
+      const f = document.getElementById('form-edit-tarjeta');
+      const b = document.getElementById('btn-mostrar-form-tarjeta');
+      if(f) f.style.display='none';
+      if(b) b.style.display='block';
+    }, 50);
   }
   renderPerfiles();
 }
