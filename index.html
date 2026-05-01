@@ -1167,6 +1167,7 @@ init();
 
 // ── NAVBAR FUNCIONAL ──
 window.cambiarTab = function(e, tab){
+  if(modoEdicion){ modoEdicion=false; buildCarrusel(); }
   if(tab === 'perfiles'){
     setNavActive('nav-perfiles');
     mostrarPantallaPerfiles();
@@ -1419,6 +1420,7 @@ window.guardarExt = async function(){
 
 
 window.irMovimientos = function(){
+  if(modoEdicion){ modoEdicion=false; buildCarrusel(); }
   // Reset selección de banco
   document.getElementById('movimientos-full').innerHTML = '';
   document.getElementById('paso-anio').style.display = 'none';
@@ -1453,6 +1455,7 @@ window.irMovimientos = function(){
 }
 
 window.irDetalle = function(){
+  if(modoEdicion){ modoEdicion=false; buildCarrusel(); }
   document.querySelectorAll('.screen').forEach(s=>{
     s.classList.add('hidden');
     s.style.display='none';
