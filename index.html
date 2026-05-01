@@ -938,17 +938,27 @@ function updateCards(){
   perfil.tarjetas.forEach((t,i)=>{
     const {inicio,fin,dias} = getPeriodo(t.corte);
     const usado = movimientos.filter(m=>m.tarjetaId===t.id&&new Date(m.fecha+'T12:00:00')>=inicio&&new Date(m.fecha+'T12:00:00')<=fin).reduce((s,m)=>s+m.monto,0);
-    const disp = Math.max(0,t.limite-usado);
-    const pct = Math.min(100,Math.round(usado/t.limite*100));
+    const sobregiro = usado > t.limite;
+    const disp = sobregiro ? 0 : t.limite - usado;
+    const exceso = sobregiro ? usado - t.limite : 0;
+    const pct = sobregiro ? 100 : Math.round(usado/t.limite*100);
     const diasTxt = dias===0?'Hoy es día de corte':`Faltan ${dias} día${dias!==1?'s':''} para corte`;
     const usadoEl=document.getElementById(`usado-${i}`);
     const dispEl=document.getElementById(`disp-${i}`);
     const barEl=document.getElementById(`bar-${i}`);
     const pctEl=document.getElementById(`pct-${i}`);
     if(usadoEl) usadoEl.textContent=fmt(usado);
-    if(dispEl) dispEl.textContent=fmt(disp);
-    if(barEl) barEl.style.width=pct+'%';
-    if(pctEl) pctEl.textContent=`${pct}% utilizado`;
+    if(dispEl) dispEl.textContent = sobregiro ? `Sobregiro: ${fmt(exceso)}` : fmt(disp);
+    if(barEl){
+      barEl.style.width = pct+'%';
+      barEl.style.background = sobregiro ? '#ff4444' : (pct>=80 ? '#ffaa00' : '#00d4aa');
+    }
+    if(pctEl){
+      pctEl.textContent = sobregiro
+        ? `⚠️ Sobregiro: ${Math.round(exceso/t.limite*100)}% del límite`
+        : `${pct}% utilizado`;
+      pctEl.style.color = sobregiro ? '#ff8888' : 'rgba(255,255,255,0.9)';
+    }
     const diasEl=document.getElementById(`dias-${i}`);
     if(diasEl) diasEl.textContent=diasTxt;
     const xdiaEl=document.getElementById(`xdia-${i}`);
