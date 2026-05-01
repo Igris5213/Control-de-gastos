@@ -90,10 +90,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bank-card{
   display:none;
   border-radius:20px;
-  padding:22px;
+  padding:18px;
   color:#fff;
   box-sizing:border-box;
-  min-height:290px;
+  min-height:240px;
 }
 .bank-card.active-card{
   display:flex;
@@ -104,7 +104,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* CSS tarjeta */
 .card-top-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
-.card-bank-name{font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.3px}
+.card-bank-name{font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.5px}
 .card-badge{display:none;align-items:center;gap:5px;background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.55);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:#fff}
 .card-lim-label{font-size:12px;color:rgba(255,255,255,0.75);margin-bottom:4px}
 .card-lim-val{font-size:28px;font-weight:700;color:#fff;margin-bottom:12px}
@@ -113,7 +113,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-use-fill{height:100%;background:#fff;border-radius:4px;transition:width 0.5s}
 .card-use-pct{font-size:13px;font-weight:500;color:rgba(255,255,255,0.9);margin-bottom:14px}
 .card-divider{height:1px;background:rgba(255,255,255,0.2);margin-bottom:14px}
-.card-corte-row{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:14px}
+.card-corte-row{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:0}
 .card-stats-row{display:flex;align-items:center;gap:12px}
 .card-stats-icon{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff}
 .card-stats-info{font-size:13px;color:#fff}
@@ -851,8 +851,8 @@ function buildCarrusel(){
     const card = document.createElement('div');
     card.className = `bank-card ${t.color || COLORS[i % COLORS.length]}`;
     card.innerHTML = `
-      <div class="card-bank-name" style="text-align:center;margin-bottom:${t.apodo?'4px':'16px'};font-size:20px;font-weight:800">${t.nombre}</div>
-      ${t.apodo ? `<div style="text-align:center;font-size:13px;opacity:0.8;margin-bottom:14px">${t.apodo}</div>` : ''}
+      <div class="card-bank-name" style="text-align:center;margin-bottom:${t.apodo?'6px':'18px'};font-size:26px;font-weight:800">${t.nombre}</div>
+      ${t.apodo ? `<div style="text-align:center;font-size:15px;opacity:0.85;margin-bottom:14px">${t.apodo}</div>` : ''}
       <div class="card-lim-label">Límite total</div>
       <div class="card-lim-val" id="lim-${i}">$${t.limite.toLocaleString('es-MX',{minimumFractionDigits:2})}</div>
       <div class="card-use-row">
@@ -862,16 +862,14 @@ function buildCarrusel(){
       <div class="card-use-bar"><div class="card-use-fill" id="bar-${i}" style="width:0%"></div></div>
       <div class="card-use-pct" id="pct-${i}">0% utilizado</div>
       <div class="card-divider"></div>
-      <div class="card-corte-row">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Fecha de corte: Día ${t.corte}
-      </div>
-      <div class="card-stats-row">
-        <div class="card-stats-icon">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="18" y="3" width="4" height="18" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="2" y="14" width="4" height="7" rx="1"/></svg>
+      <div class="card-corte-row" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <strong>Fecha de corte: Día ${t.corte}</strong>
         </div>
-        <div class="card-stats-info">
-          <div class="card-stats-gasto">Gasto por día: <span id="xdia-${i}">$0.00</span></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-weight:700;font-size:15px">$</span>
+          <strong>Gasto por día: <span id="xdia-${i}">$0.00</span></strong>
         </div>
       </div>`;
     outer.appendChild(card);
