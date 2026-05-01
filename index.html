@@ -162,6 +162,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal{background:#fff;border-radius:24px;padding:24px 20px 40px;width:100%;max-width:430px;transform:translateY(100%);transition:transform 0.3s}
 .modal-overlay.open .modal{transform:translateY(0)}
+/* Date Picker */
+#scroll-anio::-webkit-scrollbar,#scroll-mes::-webkit-scrollbar,#scroll-dia::-webkit-scrollbar{display:none}
+.scroll-item{height:60px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#bbb;cursor:pointer;scroll-snap-align:center;transition:color 0.2s,font-size 0.2s}
+.scroll-item.sel{color:#111;font-size:22px;font-weight:700}
 .modal-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 20px}
 .modal-title{font-size:18px;font-weight:700;color:#111;margin-bottom:20px}
 .field-label{font-size:13px;color:#666;margin-bottom:6px;font-weight:500}
@@ -1829,17 +1833,207 @@ window.confirmarEliminarPerfil = async function(){
     </div>
     <div class="field-wrap">
       <div class="field-label">Fecha</div>
-      <input class="inp" id="inp-fecha-ext" type="date" />
+      <!-- Selector fecha por scroll -->
+      <div onclick="abrirDatePicker()" id="fecha-ext-display"
+        style="padding:12px 14px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:15px;cursor:pointer;color:#111;display:flex;justify-content:space-between;align-items:center;background:#fff">
+        <span id="fecha-ext-txt">Seleccionar fecha</span>
+        <span style="color:#aaa;font-size:12px">▾</span>
+      </div>
+      <input type="hidden" id="inp-fecha-ext" />
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-      <button class="modal-save" onclick="guardarExt()" style="margin-top:0">Guardar</button>
       <button onclick="document.getElementById('modal-ext-overlay').classList.remove('open')" style="padding:13px;border-radius:12px;border:none;background:#ef4444;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#fff">Cancelar</button>
+      <button class="modal-save" onclick="guardarExt()" style="margin-top:0">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Date Picker Modal -->
+<div class="modal-overlay" id="datepicker-overlay" onclick="cerrarDatePicker(event)">
+  <div class="modal" style="padding:0;overflow:hidden">
+    <div class="modal-handle" style="margin-top:12px"></div>
+    <div style="padding:16px 20px 8px;font-size:16px;font-weight:700;color:#111;text-align:center">Seleccionar fecha</div>
+    <div style="display:flex;gap:0;padding:0 8px 16px">
+      <!-- Año -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Año</div>
+        <div id="scroll-anio" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%">
+          <div style="height:60px"></div><!-- padding top -->
+          <div id="scroll-anio-items"></div>
+          <div style="height:60px"></div><!-- padding bottom -->
+        </div>
+      </div>
+      <!-- Mes -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Mes</div>
+        <div id="scroll-mes" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%">
+          <div style="height:60px"></div>
+          <div id="scroll-mes-items"></div>
+          <div style="height:60px"></div>
+        </div>
+      </div>
+      <!-- Día -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Día</div>
+        <div id="scroll-dia" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%">
+          <div style="height:60px"></div>
+          <div id="scroll-dia-items"></div>
+          <div style="height:60px"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Línea central de selección -->
+    <div style="position:relative;margin:0 12px 16px">
+      <button onclick="confirmarFechaExt()" style="width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,#4f35b8,#7c3aed);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Confirmar</button>
     </div>
   </div>
 </div>
 
 
 <script>
+// ── DATE PICKER SCROLL ──────────────────────────────────────
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+let dpAnio, dpMes, dpDia;
+
+function diasEnMes(mes, anio){ return new Date(anio, mes, 0).getDate(); }
+
+function buildScrollList(containerId, items, selectedIdx){
+  const cont = document.getElementById(containerId);
+  cont.innerHTML = items.map((item,i)=>`
+    <div class="scroll-item${i===selectedIdx?' sel':''}" data-idx="${i}">${item}</div>`
+  ).join('');
+  // Scroll al seleccionado
+  setTimeout(()=>{
+    const itemH = 60;
+    cont.scrollTop = selectedIdx * itemH;
+  }, 50);
+  // Actualizar selected en scroll
+  cont.addEventListener('scroll', ()=>{
+    const idx = Math.round(cont.scrollTop / 60);
+    cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+      el.classList.toggle('sel', i===idx);
+    });
+    // Actualizar días si cambia mes o año
+    if(containerId==='scroll-anio') { dpAnio=idx; actualizarDias(); }
+    if(containerId==='scroll-mes')  { dpMes=idx+1; actualizarDias(); }
+    if(containerId==='scroll-dia')  { dpDia=idx+1; }
+  }, {passive:true});
+}
+
+function actualizarDias(){
+  const maxDias = diasEnMes(dpMes, dpAnio);
+  const dias = Array.from({length:maxDias},(_,i)=>String(i+1).padStart(2,'0'));
+  const selDia = Math.min(dpDia-1, maxDias-1);
+  buildScrollDias(dias, selDia);
+}
+
+function buildScrollDias(dias, selIdx){
+  const cont = document.getElementById('scroll-dia');
+  const itemsEl = document.getElementById('scroll-dia-items');
+  itemsEl.innerHTML = dias.map((d,i)=>`
+    <div class="scroll-item${i===selIdx?' sel':''}" data-idx="${i}">${d}</div>`
+  ).join('');
+  cont.scrollTop = selIdx * 60;
+  cont.onscroll = ()=>{
+    const idx = Math.round(cont.scrollTop / 60);
+    cont.querySelectorAll('.scroll-item').forEach((el,i)=>el.classList.toggle('sel', i===idx));
+    dpDia = idx+1;
+  };
+}
+
+window.abrirDatePicker = function(){
+  const hoy = new Date();
+  const anioActual = hoy.getFullYear();
+  const mesActual = hoy.getMonth()+1;
+  const diaActual = hoy.getDate();
+
+  dpAnio = anioActual;
+  dpMes = mesActual;
+  dpDia = diaActual;
+
+  // Años: actual y anterior
+  const anios = [anioActual-1, anioActual];
+  const selAnio = 1; // actual = índice 1
+
+  // Meses
+  const meses = MESES.map((m,i)=>m.substring(0,3));
+  const selMes = mesActual-1;
+
+  // Días
+  const maxD = diasEnMes(mesActual, anioActual);
+  const dias = Array.from({length:maxD},(_,i)=>String(i+1).padStart(2,'0'));
+  const selDia = diaActual-1;
+
+  // Construir listas
+  document.getElementById('scroll-anio-items').innerHTML = anios.map((a,i)=>`
+    <div class="scroll-item${i===selAnio?' sel':''}" data-idx="${i}">${a}</div>`).join('');
+  document.getElementById('scroll-mes-items').innerHTML = meses.map((m,i)=>`
+    <div class="scroll-item${i===selMes?' sel':''}" data-idx="${i}">${m}</div>`).join('');
+  document.getElementById('scroll-dia-items').innerHTML = dias.map((d,i)=>`
+    <div class="scroll-item${i===selDia?' sel':''}" data-idx="${i}">${d}</div>`).join('');
+
+  // Scroll inicial
+  setTimeout(()=>{
+    document.getElementById('scroll-anio').scrollTop = selAnio*60;
+    document.getElementById('scroll-mes').scrollTop = selMes*60;
+    document.getElementById('scroll-dia').scrollTop = selDia*60;
+  }, 60);
+
+  // Listeners
+  document.getElementById('scroll-anio').onscroll = ()=>{
+    const idx = Math.round(document.getElementById('scroll-anio').scrollTop/60);
+    dpAnio = anios[idx] || anioActual;
+    document.getElementById('scroll-anio-items').querySelectorAll('.scroll-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+    // Recalcular días
+    const maxD2 = diasEnMes(dpMes, dpAnio);
+    const dias2 = Array.from({length:maxD2},(_,i)=>String(i+1).padStart(2,'0'));
+    const selD2 = Math.min(dpDia-1, maxD2-1);
+    document.getElementById('scroll-dia-items').innerHTML = dias2.map((d,i)=>`
+      <div class="scroll-item${i===selD2?' sel':''}" data-idx="${i}">${d}</div>`).join('');
+    document.getElementById('scroll-dia').scrollTop = selD2*60;
+    document.getElementById('scroll-dia').onscroll = ()=>{
+      const i2=Math.round(document.getElementById('scroll-dia').scrollTop/60);
+      dpDia=i2+1;
+      document.getElementById('scroll-dia-items').querySelectorAll('.scroll-item').forEach((el,i)=>el.classList.toggle('sel',i===i2));
+    };
+  };
+  document.getElementById('scroll-mes').onscroll = ()=>{
+    const idx = Math.round(document.getElementById('scroll-mes').scrollTop/60);
+    dpMes = idx+1;
+    document.getElementById('scroll-mes-items').querySelectorAll('.scroll-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+    const maxD2=diasEnMes(dpMes,dpAnio);
+    const dias2=Array.from({length:maxD2},(_,i)=>String(i+1).padStart(2,'0'));
+    const selD2=Math.min(dpDia-1,maxD2-1);
+    document.getElementById('scroll-dia-items').innerHTML=dias2.map((d,i)=>`
+      <div class="scroll-item${i===selD2?' sel':''}" data-idx="${i}">${d}</div>`).join('');
+    document.getElementById('scroll-dia').scrollTop=selD2*60;
+  };
+  document.getElementById('scroll-dia').onscroll = ()=>{
+    const idx=Math.round(document.getElementById('scroll-dia').scrollTop/60);
+    dpDia=idx+1;
+    document.getElementById('scroll-dia-items').querySelectorAll('.scroll-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+  };
+
+  document.getElementById('datepicker-overlay').classList.add('open');
+}
+
+window.cerrarDatePicker = function(e){
+  if(e.target===document.getElementById('datepicker-overlay'))
+    document.getElementById('datepicker-overlay').classList.remove('open');
+}
+
+window.confirmarFechaExt = function(){
+  const mes = String(dpMes).padStart(2,'0');
+  const dia = String(dpDia).padStart(2,'0');
+  const fechaVal = `${dpAnio}-${mes}-${dia}`;
+  document.getElementById('inp-fecha-ext').value = fechaVal;
+  const mesNombre = MESES[dpMes-1];
+  document.getElementById('fecha-ext-txt').textContent = `${dia} de ${mesNombre} ${dpAnio}`;
+  document.getElementById('fecha-ext-txt').style.color = '#111';
+  document.getElementById('datepicker-overlay').classList.remove('open');
+}
+
 window.openModalExt = function(){
   const el = document.getElementById('modal-ext-overlay');
   if(el) el.classList.add('open');
