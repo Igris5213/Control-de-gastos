@@ -180,8 +180,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* Date Picker */
 #scroll-anio::-webkit-scrollbar,#scroll-mes::-webkit-scrollbar,#scroll-dia::-webkit-scrollbar{display:none}
 .scroll-item{height:44px;min-height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#888;cursor:pointer;scroll-snap-align:start;transition:color 0.15s;width:100%;text-align:center}
-.dp-item{height:60px;min-height:60px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#bbb;cursor:pointer;scroll-snap-align:start;transition:color 0.2s,font-size 0.2s;width:100%;text-align:center}
-.dp-item.sel{color:#111;font-size:21px;font-weight:700}
+.dp-item{height:44px;min-height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;color:#888;cursor:pointer;transition:color 0.15s;width:100%;text-align:center}
+.dp-item.sel{color:#fff!important;font-size:18px;font-weight:700}
 .scroll-item.sel{color:#fff !important;font-size:17px;font-weight:700}
 #scroll-meses-cont::-webkit-scrollbar{display:none}
 .modal-handle{width:40px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px}
@@ -2196,8 +2196,7 @@ window.abrirScrollMeses = function(){
     });
   }, 50);
   // Listener
-  scrollCont.onscroll = ()=>{
-    const idx = Math.round(scrollCont.scrollTop/44);
+  snapScroll(scrollCont, 44, idx=>{
     const meses = Math.min(24, Math.max(1, idx+1));
     cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
       const sel = i===idx;
@@ -2207,7 +2206,7 @@ window.abrirScrollMeses = function(){
     document.getElementById('promo-meses').value = meses;
     document.getElementById('promo-meses-txt').textContent = meses + (meses===1?' mes':' meses');
     document.getElementById('promo-meses-txt').style.color = '#111';
-  };
+  });
 }
 
 window.guardarPromo = async function(){
@@ -2339,12 +2338,11 @@ window.abrirEditarPromo = async function(id){
 }
 
 function buildScrollMesesEdit(current){
-  const wrap = document.getElementById('edit-meses-scroll-wrap');
   const cont = document.getElementById('edit-scroll-meses-items');
-  cont.innerHTML = Array.from({length:24},(_,i)=>i+1).map(n=>`
-    <div class="scroll-item${n===current?' sel':''}" data-m="${n}" style="${n===current?'color:#fff;':''}">${n} ${n===1?'mes':'meses'}</div>
-  `).join('');
   const scrollCont = document.getElementById('edit-scroll-meses-cont');
+  cont.innerHTML = Array.from({length:24},(_,i)=>i+1).map(n=>
+    `<div class="scroll-item${n===current?' sel':''}" style="${n===current?'color:#fff;':''}">${n} ${n===1?'mes':'meses'}</div>`
+  ).join('');
   setTimeout(()=>{
     scrollCont.scrollTop = (current-1)*44;
     cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
@@ -2352,18 +2350,17 @@ function buildScrollMesesEdit(current){
       el.classList.toggle('sel', sel);
       el.style.color = sel ? '#fff' : '';
     });
-  }, 50);
-  scrollCont.onscroll = ()=>{
-    const idx = Math.round(scrollCont.scrollTop/44);
-    const meses = Math.min(24, Math.max(1, idx+1));
-    cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
-      const sel = i===idx;
-      el.classList.toggle('sel', sel);
-      el.style.color = sel ? '#fff' : '';
+    snapScroll(scrollCont, 44, idx=>{
+      const meses = Math.min(24, Math.max(1, idx+1));
+      cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+        const sel = i===idx;
+        el.classList.toggle('sel', sel);
+        el.style.color = sel ? '#fff' : '';
+      });
+      document.getElementById('edit-promo-meses').value = meses;
+      document.getElementById('edit-promo-meses-txt').textContent = meses + (meses===1?' mes':' meses');
     });
-    document.getElementById('edit-promo-meses').value = meses;
-    document.getElementById('edit-promo-meses-txt').textContent = meses + (meses===1?' mes':' meses');
-  };
+  }, 80);
 }
 
 window.abrirScrollMesesPagEdit = function(){
@@ -2377,25 +2374,24 @@ window.abrirScrollMesesPagEdit = function(){
     const current = parseInt(document.getElementById('edit-promo-mesespag').value) || 1;
     const cont = document.getElementById('edit-scroll-mesespag-items');
     const scrollCont = document.getElementById('edit-scroll-mesespag-cont');
-    cont.innerHTML = Array.from({length:maxMeses},(_,i)=>i+1).map(n=>`
-      <div class="scroll-item${n===current?' sel':''}" data-m="${n}" style="${n===current?'color:#fff;':''}">${n} ${n===1?'mes':'meses'}</div>
-    `).join('');
+    cont.innerHTML = Array.from({length:maxMeses},(_,i)=>i+1).map(n=>
+      `<div class="scroll-item${n===current?' sel':''}" style="${n===current?'color:#fff;':''}">${n} ${n===1?'mes':'meses'}</div>`
+    ).join('');
     setTimeout(()=>{
       scrollCont.scrollTop = (current-1)*44;
       cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
-        const sel = i===(current-1); el.classList.toggle('sel',sel); el.style.color=sel?'#fff':'';
+        const sel=i===(current-1); el.classList.toggle('sel',sel); el.style.color=sel?'#fff':'';
       });
-    },50);
-    scrollCont.onscroll = ()=>{
-      const idx = Math.round(scrollCont.scrollTop/44);
-      const meses = Math.min(maxMeses, Math.max(1, idx+1));
-      cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
-        const sel=i===idx; el.classList.toggle('sel',sel); el.style.color=sel?'#fff':'';
+      snapScroll(scrollCont, 44, idx=>{
+        const meses = Math.min(maxMeses, Math.max(1, idx+1));
+        cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+          const sel=i===idx; el.classList.toggle('sel',sel); el.style.color=sel?'#fff':'';
+        });
+        document.getElementById('edit-promo-mesespag').value = meses;
+        document.getElementById('edit-promo-mesespag-txt').textContent = meses + (meses===1?' mes pagado':' meses pagados');
+        document.getElementById('edit-promo-mesespag-txt').style.color = '#111';
       });
-      document.getElementById('edit-promo-mesespag').value = meses;
-      document.getElementById('edit-promo-mesespag-txt').textContent = meses + (meses===1?' mes pagado':' meses pagados');
-      document.getElementById('edit-promo-mesespag-txt').style.color = '#111';
-    };
+    }, 80);
   }
 }
 
@@ -2761,7 +2757,7 @@ window.confirmarEliminarPerfil = async function(){
       <div style="position:relative;height:132px">
         <!-- Recuadro negro centrado -->
         <div style="position:absolute;left:12px;right:12px;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
-        <div id="scroll-meses-cont" style="position:absolute;inset:0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+        <div id="scroll-meses-cont" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
           <div style="height:44px"></div>
           <div id="scroll-meses-items" style="width:100%"></div>
           <div style="height:44px"></div>
@@ -2829,34 +2825,41 @@ window.confirmarEliminarPerfil = async function(){
   <div class="modal" style="padding:0;overflow:hidden">
     <div class="modal-handle" style="margin-top:12px"></div>
     <div style="padding:16px 20px 8px;font-size:16px;font-weight:700;color:#111;text-align:center">Seleccionar fecha</div>
-    <div style="position:relative;display:flex;gap:0;padding:0 8px 16px">
-      <!-- Línea central de selección -->
-      <div style="position:absolute;left:8px;right:8px;top:50%;transform:translateY(-50%);height:60px;background:rgba(0,0,0,0.06);border-radius:8px;pointer-events:none;z-index:0"></div>
+    <div style="display:flex;gap:8px;padding:0 0 16px">
       <!-- Año -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center">
-        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Año</div>
-        <div id="scroll-anio" style="height:180px;overflow-y:auto;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
-          <div style="height:60px;flex-shrink:0"></div>
-          <div id="scroll-anio-items"></div>
-          <div style="height:60px;flex-shrink:0"></div>
+        <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Año</div>
+        <div style="position:relative;width:100%;height:132px">
+          <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
+          <div id="scroll-anio" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+            <div style="height:44px"></div>
+            <div id="scroll-anio-items"></div>
+            <div style="height:44px"></div>
+          </div>
         </div>
       </div>
       <!-- Mes -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center">
-        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Mes</div>
-        <div id="scroll-mes" style="height:180px;overflow-y:auto;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
-          <div style="height:60px;flex-shrink:0"></div>
-          <div id="scroll-mes-items"></div>
-          <div style="height:60px;flex-shrink:0"></div>
+        <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Mes</div>
+        <div style="position:relative;width:100%;height:132px">
+          <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
+          <div id="scroll-mes" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+            <div style="height:44px"></div>
+            <div id="scroll-mes-items"></div>
+            <div style="height:44px"></div>
+          </div>
         </div>
       </div>
       <!-- Día -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center">
-        <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Día</div>
-        <div id="scroll-dia" style="height:180px;overflow-y:auto;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
-          <div style="height:60px;flex-shrink:0"></div>
-          <div id="scroll-dia-items"></div>
-          <div style="height:60px;flex-shrink:0"></div>
+        <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Día</div>
+        <div style="position:relative;width:100%;height:132px">
+          <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
+          <div id="scroll-dia" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+            <div style="height:44px"></div>
+            <div id="scroll-dia-items"></div>
+            <div style="height:44px"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -2971,11 +2974,11 @@ window.abrirDatePicker = function(){
     const elA = document.getElementById('scroll-anio');
     const elM = document.getElementById('scroll-mes');
     const elD = document.getElementById('scroll-dia');
-    elA.scrollTop = selAnio*60;
-    elM.scrollTop = selMes*60;
-    elD.scrollTop = selDia*60;
+    elA.scrollTop = selAnio*44;
+    elM.scrollTop = selMes*44;
+    elD.scrollTop = selDia*44;
 
-    snapScroll(elA, 60, idx=>{
+    snapScroll(elA, 44, idx=>{
       dpAnio = anios[Math.min(idx, anios.length-1)] || anioActual;
       highlight('scroll-anio-items', idx);
       // Recalcular días
@@ -2987,7 +2990,7 @@ window.abrirDatePicker = function(){
       dpDia=sd+1;
     });
 
-    snapScroll(elM, 60, idx=>{
+    snapScroll(elM, 44, idx=>{
       dpMes = idx+1;
       highlight('scroll-mes-items', idx);
       const md=diasEnMes(dpMes,dpAnio);
@@ -2998,7 +3001,7 @@ window.abrirDatePicker = function(){
       dpDia=sd+1;
     });
 
-    snapScroll(elD, 60, idx=>{
+    snapScroll(elD, 44, idx=>{
       dpDia=idx+1;
       highlight('scroll-dia-items', idx);
     });
@@ -3386,7 +3389,7 @@ window.confirmarEliminarPerfil = async function(){
       <div style="font-size:10px;font-weight:700;color:#aaa;text-align:center;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Desliza para seleccionar</div>
       <div style="position:relative;height:132px">
         <div style="position:absolute;left:12px;right:12px;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
-        <div id="edit-scroll-mesespag-cont" style="position:absolute;inset:0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+        <div id="edit-scroll-mesespag-cont" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
           <div style="height:44px"></div>
           <div id="edit-scroll-mesespag-items" style="width:100%"></div>
           <div style="height:44px"></div>
@@ -3410,7 +3413,7 @@ window.confirmarEliminarPerfil = async function(){
       <div style="font-size:10px;font-weight:700;color:#aaa;text-align:center;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Desliza para seleccionar</div>
       <div style="position:relative;height:132px">
         <div style="position:absolute;left:12px;right:12px;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
-        <div id="edit-scroll-meses-cont" style="position:absolute;inset:0;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+        <div id="edit-scroll-meses-cont" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
           <div style="height:44px"></div>
           <div id="edit-scroll-meses-items" style="width:100%"></div>
           <div style="height:44px"></div>
