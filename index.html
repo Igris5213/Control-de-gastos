@@ -1654,7 +1654,10 @@ function resetHistorial(){
   document.getElementById('banco-seleccionado-txt').textContent = 'Seleccionar banco';
   document.getElementById('tarjeta-seleccionada-txt').textContent = 'Seleccionar tarjeta';
   document.getElementById('dd-bancos').style.display = 'none';
-  document.getElementById('dd-bancos-icon').style.transform = '';
+  document.getElementById('dd-bancos-icon').style.transform = 'rotate(0deg)';
+  // Cerrar dropdown banco completamente
+  const ddBancos = document.getElementById('dd-bancos');
+  if(ddBancos) ddBancos.style.display = 'none';
   const recPH = document.getElementById('recuadro-promos-historial');
   if(recPH) recPH.style.display = 'none';
   // Ocultar resumen y restaurar selectores
@@ -1819,6 +1822,7 @@ window.seleccionarBancoMov = function(nombre){
   // Resetear tarjeta y movimientos
   document.getElementById('tarjeta-seleccionada-txt').textContent = 'Seleccionar tarjeta';
   document.getElementById('dd-tarjetas').style.display = 'none';
+  document.getElementById('dd-tarjetas-icon').style.transform = '';
   document.getElementById('recuadro-movimientos').style.display = 'none';
   document.getElementById('movimientos-full').innerHTML = '';
   document.getElementById('paso-anio').style.display = 'none';
@@ -2015,42 +2019,51 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
 }
 
 window.nuevaBusqueda = function(){
-  document.getElementById('recuadro-promos-historial').style.display = 'none';
-  document.getElementById('promos-historial-lista').innerHTML = '';
-  // Ocultar promociones en historial
-  const recPH = document.getElementById('recuadro-promos-historial');
-  if(recPH) recPH.style.display = 'none';
-  // Ocultar resumen y restaurar selectores
-  const resumen = document.getElementById('resumen-seleccion');
-  if(resumen) resumen.style.display = 'none';
-  const elBanco = document.getElementById('paso-banco-hist');
-  if(elBanco) elBanco.style.display = '';
-  // Mostrar de nuevo el selector de banco
-  document.querySelectorAll('#screen-movimientos > div > [style*="background:linear-gradient"]').forEach(el=>{
-    el.style.display = '';
-  });
-  // Resetear todo a estado inicial
-  document.getElementById('banco-seleccionado-txt').textContent = 'Seleccionar banco';
-  document.getElementById('dd-bancos').style.display = 'none';
-  document.getElementById('dd-bancos-icon').style.transform = '';
-  document.getElementById('paso-apodo').style.display = 'none';
-  document.getElementById('tarjeta-seleccionada-txt').textContent = 'Seleccionar tarjeta';
-  document.getElementById('dd-tarjetas').style.display = 'none';
-  document.getElementById('dd-tarjetas-icon').style.transform = '';
+  // Ocultar resultados
   document.getElementById('recuadro-movimientos').style.display = 'none';
   document.getElementById('movimientos-full').innerHTML = '';
-  document.getElementById('paso-anio').style.display = 'none';
-  document.getElementById('anio-seleccionado-txt').textContent = 'Seleccionar año';
-  document.getElementById('dd-anios').style.display = 'none';
-  document.getElementById('paso-corte').style.display = 'none';
-  document.getElementById('corte-seleccionado-txt').textContent = 'Seleccionar corte';
-  document.getElementById('dd-cortes').style.display = 'none';
+  document.getElementById('recuadro-promos-historial').style.display = 'none';
+  document.getElementById('resumen-seleccion').style.display = 'none';
   const btnBusq = document.getElementById('btn-nueva-busqueda');
   if(btnBusq) btnBusq.style.display = 'none';
-  // Limpiar selección en listas
+  // Mostrar selectores
+  document.getElementById('leyenda-historial').style.display = '';
+  document.getElementById('paso-banco-hist').style.display = '';
+  document.getElementById('paso-apodo').style.display = 'none';
+  document.getElementById('paso-anio').style.display = 'none';
+  document.getElementById('paso-corte').style.display = 'none';
+  // Resetear textos
+  document.getElementById('banco-seleccionado-txt').textContent = 'Seleccionar banco';
+  document.getElementById('tarjeta-seleccionada-txt').textContent = 'Seleccionar tarjeta';
+  document.getElementById('anio-seleccionado-txt').textContent = 'Seleccionar año';
+  document.getElementById('corte-seleccionado-txt').textContent = 'Seleccionar corte';
+  document.getElementById('dd-bancos').style.display = 'none';
+  document.getElementById('dd-bancos-icon').style.transform = '';
+  document.getElementById('dd-tarjetas').style.display = 'none';
+  document.getElementById('dd-anios').style.display = 'none';
+  document.getElementById('dd-cortes').style.display = 'none';
+  // Rehabilitar pointerEvents
+  ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.parentElement && el.parentElement.parentElement){
+      el.parentElement.parentElement.style.pointerEvents = '';
+      el.parentElement.parentElement.style.opacity = '';
+    }
+  });
   document.querySelectorAll('#lista-bancos-btns div').forEach(b=>{
     b.style.background='#fff'; b.style.color='#111'; b.style.fontWeight='500';
   });
+  // Forzar cierre de todos los dropdowns
+  ['dd-bancos','dd-tarjetas','dd-anios','dd-cortes'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+  ['dd-bancos-icon','dd-tarjetas-icon','dd-anios-icon','dd-cortes-icon'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.transform = '';
+  });
+  // Recargar lista de bancos (sin abrir dropdown)
+  cargarBancosFiltro();
 }
 
 window.resaltarMov = function(el){
