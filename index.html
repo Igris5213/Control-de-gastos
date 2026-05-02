@@ -1941,7 +1941,7 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
     // Fecha de fin del corte seleccionado formateada
     const finFmt = periodoFin.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
     listaPromos.innerHTML = promosVigentes.map(p=>`
-      <div class="section-card" style="margin:0 0 8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+      <div style="background:#f5f5f5;border-radius:10px;padding:10px 8px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee">
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;color:#111;margin-bottom:2px">${p.comercio?p.comercio+' · ':''}<span style="font-weight:500">${p.nombre}</span></div>
           <div style="font-size:12px;color:#888">${finFmt}</div>
@@ -3139,9 +3139,9 @@ window.confirmarEliminarPerfil = async function(){
     </div>
 
     <!-- Promociones vigentes en historial -->
-    <div id="recuadro-promos-historial" style="display:none;margin:0 0 12px">
-      <div style="font-size:12px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;padding:0 2px">Promociones activas este corte</div>
-      <div id="promos-historial-lista"></div>
+    <div class="section-card" id="recuadro-promos-historial" style="display:none;margin:0 0 12px">
+      <div class="section-card-title">Promociones</div>
+      <div id="promos-historial-lista" style="max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
     </div>
 
     <!-- Movimientos -->
