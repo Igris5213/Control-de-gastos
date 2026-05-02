@@ -2920,6 +2920,21 @@ function buildScrollDias(dias, selIdx){
   };
 }
 
+function snapScroll(el, itemH, onSnap){
+  let timer;
+  const handler = ()=>{
+    clearTimeout(timer);
+    timer = setTimeout(()=>{
+      const idx = Math.round(el.scrollTop / itemH);
+      el.scrollTo({top: idx * itemH, behavior:'smooth'});
+      setTimeout(()=>onSnap(idx), 200);
+    }, 80);
+  };
+  el.removeEventListener('scroll', el._snapHandler);
+  el._snapHandler = handler;
+  el.addEventListener('scroll', handler, {passive:true});
+}
+
 window.abrirDatePicker = function(){
   const hoy = new Date();
   const anioActual = hoy.getFullYear();
@@ -2930,86 +2945,64 @@ window.abrirDatePicker = function(){
   dpMes = mesActual;
   dpDia = diaActual;
 
-  // Años: actual y anterior
   const anios = [anioActual-1, anioActual];
-  const selAnio = 1; // actual = índice 1
-
-  // Meses
-  const meses = MESES.map((m,i)=>m.substring(0,3));
+  const selAnio = 1;
+  const meses = MESES.map(m=>m.substring(0,3));
   const selMes = mesActual-1;
-
-  // Días
   const maxD = diasEnMes(mesActual, anioActual);
   const dias = Array.from({length:maxD},(_,i)=>String(i+1).padStart(2,'0'));
   const selDia = diaActual-1;
 
-  // Construir listas
-  document.getElementById('scroll-anio-items').innerHTML = anios.map((a,i)=>`
-    <div class="dp-item${i===selAnio?' sel':''}" data-idx="${i}">${a}</div>`).join('');
-  document.getElementById('scroll-mes-items').innerHTML = meses.map((m,i)=>`
-    <div class="dp-item${i===selMes?' sel':''}" data-idx="${i}">${m}</div>`).join('');
-  document.getElementById('scroll-dia-items').innerHTML = dias.map((d,i)=>`
-    <div class="dp-item${i===selDia?' sel':''}" data-idx="${i}">${d}</div>`).join('');
+  function renderItems(containerId, items, selIdx, cls='dp-item'){
+    document.getElementById(containerId).innerHTML = items.map((v,i)=>
+      `<div class="${cls}${i===selIdx?' sel':''}">${v}</div>`
+    ).join('');
+  }
 
-  // Scroll inicial
+  renderItems('scroll-anio-items', anios, selAnio);
+  renderItems('scroll-mes-items', meses, selMes);
+  renderItems('scroll-dia-items', dias, selDia);
+
+  function highlight(containerId, idx){
+    document.getElementById(containerId).querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+  }
+
   setTimeout(()=>{
-    document.getElementById('scroll-anio').scrollTop = selAnio*60;
-    document.getElementById('scroll-mes').scrollTop = selMes*60;
-    document.getElementById('scroll-dia').scrollTop = selDia*60;
-  }, 60);
-
-  // Listeners
-  let _anioTimer;
-  document.getElementById('scroll-anio').onscroll = ()=>{
-    const el = document.getElementById('scroll-anio');
-    clearTimeout(_anioTimer);
-    _anioTimer = setTimeout(()=>{
-      const idx = Math.round(el.scrollTop/60);
-      el.scrollTop = idx*60;
-      dpAnio = anios[idx] || anioActual;
-      document.getElementById('scroll-anio-items').querySelectorAll('.dp-item').forEach((el2,i)=>el2.classList.toggle('sel',i===idx));
-    // Recalcular días
-    const maxD2 = diasEnMes(dpMes, dpAnio);
-    const dias2 = Array.from({length:maxD2},(_,i)=>String(i+1).padStart(2,'0'));
-    const selD2 = Math.min(dpDia-1, maxD2-1);
-    document.getElementById('scroll-dia-items').innerHTML = dias2.map((d,i)=>`
-      <div class="dp-item${i===selD2?' sel':''}" data-idx="${i}">${d}</div>`).join('');
-    document.getElementById('scroll-dia').scrollTop = selD2*60;
-    document.getElementById('scroll-dia').onscroll = ()=>{
-      const i2=Math.round(document.getElementById('scroll-dia').scrollTop/60);
-      dpDia=i2+1;
-      document.getElementById('scroll-dia-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===i2));
-    };
-    }, 150);
-  };
-  let _mesTimer;
-  document.getElementById('scroll-mes').onscroll = ()=>{
+    const elA = document.getElementById('scroll-anio');
     const elM = document.getElementById('scroll-mes');
-    clearTimeout(_mesTimer);
-    _mesTimer = setTimeout(()=>{
-      const idx = Math.round(elM.scrollTop/60);
-      elM.scrollTop = idx*60;
-      dpMes = idx+1;
-      document.getElementById('scroll-mes-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
-    const maxD2=diasEnMes(dpMes,dpAnio);
-    const dias2=Array.from({length:maxD2},(_,i)=>String(i+1).padStart(2,'0'));
-    const selD2=Math.min(dpDia-1,maxD2-1);
-    document.getElementById('scroll-dia-items').innerHTML=dias2.map((d,i)=>`
-      <div class="dp-item${i===selD2?' sel':''}" data-idx="${i}">${d}</div>`).join('');
-    document.getElementById('scroll-dia').scrollTop=selD2*60;
-    }, 150);
-  };
-  let _diaTimer;
-  document.getElementById('scroll-dia').onscroll = ()=>{
     const elD = document.getElementById('scroll-dia');
-    clearTimeout(_diaTimer);
-    _diaTimer = setTimeout(()=>{
-      const idx=Math.round(elD.scrollTop/60);
-      elD.scrollTop = idx*60;
+    elA.scrollTop = selAnio*60;
+    elM.scrollTop = selMes*60;
+    elD.scrollTop = selDia*60;
+
+    snapScroll(elA, 60, idx=>{
+      dpAnio = anios[Math.min(idx, anios.length-1)] || anioActual;
+      highlight('scroll-anio-items', idx);
+      // Recalcular días
+      const md=diasEnMes(dpMes,dpAnio);
+      const ds=Array.from({length:md},(_,i)=>String(i+1).padStart(2,'0'));
+      const sd=Math.min(dpDia-1,md-1);
+      renderItems('scroll-dia-items',ds,sd);
+      elD.scrollTop=sd*60;
+      dpDia=sd+1;
+    });
+
+    snapScroll(elM, 60, idx=>{
+      dpMes = idx+1;
+      highlight('scroll-mes-items', idx);
+      const md=diasEnMes(dpMes,dpAnio);
+      const ds=Array.from({length:md},(_,i)=>String(i+1).padStart(2,'0'));
+      const sd=Math.min(dpDia-1,md-1);
+      renderItems('scroll-dia-items',ds,sd);
+      elD.scrollTop=sd*60;
+      dpDia=sd+1;
+    });
+
+    snapScroll(elD, 60, idx=>{
       dpDia=idx+1;
-      document.getElementById('scroll-dia-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
-    }, 150);
-  };
+      highlight('scroll-dia-items', idx);
+    });
+  }, 80);
 
   document.getElementById('datepicker-overlay').classList.add('open');
 }
