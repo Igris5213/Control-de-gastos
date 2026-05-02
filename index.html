@@ -2835,7 +2835,7 @@ window.confirmarEliminarPerfil = async function(){
       <!-- Año -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center">
         <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Año</div>
-        <div id="scroll-anio" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
+        <div id="scroll-anio" style="height:180px;overflow-y:auto;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
           <div style="height:60px;flex-shrink:0"></div>
           <div id="scroll-anio-items"></div>
           <div style="height:60px;flex-shrink:0"></div>
@@ -2844,7 +2844,7 @@ window.confirmarEliminarPerfil = async function(){
       <!-- Mes -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center">
         <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Mes</div>
-        <div id="scroll-mes" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
+        <div id="scroll-mes" style="height:180px;overflow-y:auto;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
           <div style="height:60px;flex-shrink:0"></div>
           <div id="scroll-mes-items"></div>
           <div style="height:60px;flex-shrink:0"></div>
@@ -2853,7 +2853,7 @@ window.confirmarEliminarPerfil = async function(){
       <!-- Día -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center">
         <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Día</div>
-        <div id="scroll-dia" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
+        <div id="scroll-dia" style="height:180px;overflow-y:auto;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
           <div style="height:60px;flex-shrink:0"></div>
           <div id="scroll-dia-items"></div>
           <div style="height:60px;flex-shrink:0"></div>
@@ -2959,10 +2959,15 @@ window.abrirDatePicker = function(){
   }, 60);
 
   // Listeners
+  let _anioTimer;
   document.getElementById('scroll-anio').onscroll = ()=>{
-    const idx = Math.round(document.getElementById('scroll-anio').scrollTop/60);
-    dpAnio = anios[idx] || anioActual;
-    document.getElementById('scroll-anio-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+    const el = document.getElementById('scroll-anio');
+    clearTimeout(_anioTimer);
+    _anioTimer = setTimeout(()=>{
+      const idx = Math.round(el.scrollTop/60);
+      el.scrollTop = idx*60;
+      dpAnio = anios[idx] || anioActual;
+      document.getElementById('scroll-anio-items').querySelectorAll('.dp-item').forEach((el2,i)=>el2.classList.toggle('sel',i===idx));
     // Recalcular días
     const maxD2 = diasEnMes(dpMes, dpAnio);
     const dias2 = Array.from({length:maxD2},(_,i)=>String(i+1).padStart(2,'0'));
@@ -2975,22 +2980,35 @@ window.abrirDatePicker = function(){
       dpDia=i2+1;
       document.getElementById('scroll-dia-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===i2));
     };
+    }, 150);
   };
+  let _mesTimer;
   document.getElementById('scroll-mes').onscroll = ()=>{
-    const idx = Math.round(document.getElementById('scroll-mes').scrollTop/60);
-    dpMes = idx+1;
-    document.getElementById('scroll-mes-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+    const elM = document.getElementById('scroll-mes');
+    clearTimeout(_mesTimer);
+    _mesTimer = setTimeout(()=>{
+      const idx = Math.round(elM.scrollTop/60);
+      elM.scrollTop = idx*60;
+      dpMes = idx+1;
+      document.getElementById('scroll-mes-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
     const maxD2=diasEnMes(dpMes,dpAnio);
     const dias2=Array.from({length:maxD2},(_,i)=>String(i+1).padStart(2,'0'));
     const selD2=Math.min(dpDia-1,maxD2-1);
     document.getElementById('scroll-dia-items').innerHTML=dias2.map((d,i)=>`
       <div class="dp-item${i===selD2?' sel':''}" data-idx="${i}">${d}</div>`).join('');
     document.getElementById('scroll-dia').scrollTop=selD2*60;
+    }, 150);
   };
+  let _diaTimer;
   document.getElementById('scroll-dia').onscroll = ()=>{
-    const idx=Math.round(document.getElementById('scroll-dia').scrollTop/60);
-    dpDia=idx+1;
-    document.getElementById('scroll-dia-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+    const elD = document.getElementById('scroll-dia');
+    clearTimeout(_diaTimer);
+    _diaTimer = setTimeout(()=>{
+      const idx=Math.round(elD.scrollTop/60);
+      elD.scrollTop = idx*60;
+      dpDia=idx+1;
+      document.getElementById('scroll-dia-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+    }, 150);
   };
 
   document.getElementById('datepicker-overlay').classList.add('open');
