@@ -1657,6 +1657,11 @@ function resetHistorial(){
   document.getElementById('dd-bancos-icon').style.transform = '';
   const recPH = document.getElementById('recuadro-promos-historial');
   if(recPH) recPH.style.display = 'none';
+  // Ocultar resumen y restaurar selectores
+  const resumen = document.getElementById('resumen-seleccion');
+  if(resumen) resumen.style.display = 'none';
+  const elBanco = document.getElementById('paso-banco-hist');
+  if(elBanco) elBanco.style.display = '';
   ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
     const el = document.getElementById(id);
     if(el && el.parentElement && el.parentElement.parentElement){
@@ -1688,6 +1693,11 @@ window.irMovimientos = function(){
   // Ocultar recuadro de promociones
   const recPH = document.getElementById('recuadro-promos-historial');
   if(recPH) recPH.style.display = 'none';
+  // Ocultar resumen y restaurar selectores
+  const resumen = document.getElementById('resumen-seleccion');
+  if(resumen) resumen.style.display = 'none';
+  const elBanco = document.getElementById('paso-banco-hist');
+  if(elBanco) elBanco.style.display = '';
   // Rehabilitar recuadros bloqueados
   ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
     const el = document.getElementById(id);
@@ -1920,11 +1930,23 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
   document.getElementById('corte-seleccionado-txt').textContent = nombre.charAt(0).toUpperCase()+nombre.slice(1);
   document.getElementById('dd-cortes').style.display = 'none';
   document.getElementById('dd-cortes-icon').style.transform = '';
+  // Ocultar todos los selectores
+  ['paso-banco-hist','paso-apodo','paso-anio','paso-corte'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+  // Mostrar resumen de selección
+  const tResumen = (perfil?.tarjetas||[]).find(x=>x.id===tarjetaId);
+  document.getElementById('resumen-banco').textContent = document.getElementById('banco-seleccionado-txt').textContent;
+  document.getElementById('resumen-tarjeta').textContent = tResumen?.apodo||tResumen?.nombre||'—';
+  document.getElementById('resumen-anio').textContent = document.getElementById('anio-seleccionado-txt').textContent;
+  document.getElementById('resumen-corte').textContent = document.getElementById('corte-seleccionado-txt').textContent;
+  document.getElementById('resumen-seleccion').style.display = 'block';
+  document.getElementById('btn-nueva-busqueda').style.display = 'flex';
   // Mostrar movimientos del corte
   const data = movsPorCorte(tarjetaId, corte, periodoFin);
   const rec = document.getElementById('recuadro-movimientos');
   rec.style.display = 'block';
-  document.getElementById('btn-nueva-busqueda').style.display = 'flex';
   // Mostrar promociones vigentes de esta tarjeta en este corte
   const promosVigentes = promocionesCache.filter(p=>{
     if(p.tarjetaId !== tarjetaId) return false;
@@ -1948,14 +1970,20 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
   } else {
     recPromos.style.display = 'none';
   }
-  // Bloquear recuadros de selección hasta nueva búsqueda
-  ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el && el.parentElement && el.parentElement.parentElement){
-      el.parentElement.parentElement.style.pointerEvents = 'none';
-      el.parentElement.parentElement.style.opacity = '0.75';
-    }
+  // Ocultar todos los selectores al mostrar resultados
+  const selectorIds = ['dd-bancos','paso-apodo','paso-anio','paso-corte'];
+  selectorIds.forEach(id=>{
+    const el = document.getElementById(id+'_wrapper') || document.getElementById(id);
+    // Ocultar el recuadro padre de cada selector
   });
+  // Ocultar recuadros completos
+  const bancoRecuadro = document.getElementById('banco-seleccionado-txt')?.closest('[style*="background:linear-gradient"]');
+  document.querySelectorAll('#screen-movimientos > div > [style*="background:linear-gradient"]').forEach(el=>{
+    el.style.display = 'none';
+  });
+  document.getElementById('paso-apodo').style.display = 'none';
+  document.getElementById('paso-anio').style.display = 'none';
+  document.getElementById('paso-corte').style.display = 'none';
   // Callback ligero: solo actualiza el contenido sin tocar dropdowns
   const renderCorte = ()=>{
     const d = movsPorCorte(tarjetaId, corte, periodoFin);
@@ -1997,13 +2025,14 @@ window.nuevaBusqueda = function(){
   // Ocultar promociones en historial
   const recPH = document.getElementById('recuadro-promos-historial');
   if(recPH) recPH.style.display = 'none';
-  // Rehabilitar recuadros
-  ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el && el.parentElement && el.parentElement.parentElement){
-      el.parentElement.parentElement.style.pointerEvents = '';
-      el.parentElement.parentElement.style.opacity = '';
-    }
+  // Ocultar resumen y restaurar selectores
+  const resumen = document.getElementById('resumen-seleccion');
+  if(resumen) resumen.style.display = 'none';
+  const elBanco = document.getElementById('paso-banco-hist');
+  if(elBanco) elBanco.style.display = '';
+  // Mostrar de nuevo el selector de banco
+  document.querySelectorAll('#screen-movimientos > div > [style*="background:linear-gradient"]').forEach(el=>{
+    el.style.display = '';
   });
   // Resetear todo a estado inicial
   document.getElementById('banco-seleccionado-txt').textContent = 'Seleccionar banco';
@@ -3069,7 +3098,7 @@ window.confirmarEliminarPerfil = async function(){
       <div style="font-size:15px;font-weight:600;color:#888;text-align:center">Selecciona la tarjeta a consultar</div>
     </div>
     <!-- Selector Banco -->
-    <div style="margin:0 0 12px;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#111,#333);box-shadow:0 2px 8px rgba(0,0,0,0.2)">
+    <div id="paso-banco-hist" style="margin:0 0 12px;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#111,#333);box-shadow:0 2px 8px rgba(0,0,0,0.2)">
       <div onclick="toggleDropdown('dd-bancos')" style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer">
         <div>
           <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Banco</div>
@@ -3136,6 +3165,28 @@ window.confirmarEliminarPerfil = async function(){
     </div>
 
     <!-- Promociones vigentes en historial -->
+    <!-- Resumen selección -->
+    <div class="section-card" id="resumen-seleccion" style="display:none;margin:0 0 12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Banco</div>
+          <div style="font-size:14px;font-weight:700;color:#111" id="resumen-banco">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Tarjeta</div>
+          <div style="font-size:14px;font-weight:700;color:#111" id="resumen-tarjeta">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Año</div>
+          <div style="font-size:14px;font-weight:700;color:#111" id="resumen-anio">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Corte</div>
+          <div style="font-size:14px;font-weight:700;color:#111" id="resumen-corte">—</div>
+        </div>
+      </div>
+    </div>
+
     <div class="section-card" id="recuadro-promos-historial" style="display:none;margin:0 0 12px">
       <div class="section-card-title">Promociones</div>
       <div id="promos-historial-lista" style="max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
