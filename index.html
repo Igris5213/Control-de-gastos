@@ -1930,11 +1930,13 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
   document.getElementById('corte-seleccionado-txt').textContent = nombre.charAt(0).toUpperCase()+nombre.slice(1);
   document.getElementById('dd-cortes').style.display = 'none';
   document.getElementById('dd-cortes-icon').style.transform = '';
-  // Ocultar todos los selectores
+  // Ocultar todos los selectores y la leyenda
   ['paso-banco-hist','paso-apodo','paso-anio','paso-corte'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.style.display='none';
   });
+  const leyenda = document.getElementById('leyenda-historial');
+  if(leyenda) leyenda.style.display='none';
   // Mostrar resumen de selección
   const tResumen = (perfil?.tarjetas||[]).find(x=>x.id===tarjetaId);
   document.getElementById('resumen-banco').textContent = document.getElementById('banco-seleccionado-txt').textContent;
@@ -1954,21 +1956,14 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
     return mPag < p.meses; // solo activas
   });
   const recPromos = document.getElementById('recuadro-promos-historial');
-  const listaPromos = document.getElementById('promos-historial-lista');
   if(promosVigentes.length){
-    recPromos.style.display = 'block';
-    // Fecha de fin del corte seleccionado formateada
     const finFmt = periodoFin.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
-    listaPromos.innerHTML = promosVigentes.map(p=>`
-      <div style="background:#f5f5f5;border-radius:10px;padding:10px 8px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700;color:#111;margin-bottom:2px">${p.comercio?p.comercio+' · ':''}<span style="font-weight:500">${p.nombre}</span></div>
-          <div style="font-size:12px;color:#888">${finFmt}</div>
-        </div>
-        <div style="font-size:15px;font-weight:700;color:#111;white-space:nowrap;margin-left:12px">-${fmt(p.mensualidad)}</div>
-      </div>`).join('');
+    window._promosHistorialVigentes = promosVigentes;
+    window._promosHistorialFecha = finFmt;
+    recPromos.style.display = 'block';
   } else {
     recPromos.style.display = 'none';
+    window._promosHistorialVigentes = [];
   }
   // Ocultar todos los selectores al mostrar resultados
   const selectorIds = ['dd-bancos','paso-apodo','paso-anio','paso-corte'];
@@ -2526,6 +2521,28 @@ window.verPromo = async function(id){
     `;
     document.getElementById('modal-detalle-promo').classList.add('open');
   }catch(e){ showToast('❌ Error al cargar'); }
+}
+
+window.abrirModalPromosHistorial = function(){
+  const promos = window._promosHistorialVigentes || [];
+  const fecha = window._promosHistorialFecha || '';
+  const lista = document.getElementById('modal-promos-historial-lista');
+  lista.innerHTML = promos.map(p=>
+    '<div style="background:#f5f5f5;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
+    + '<div>'
+    + '<div style="font-size:14px;font-weight:700;color:#111">' + (p.comercio||p.nombre) + '</div>'
+    + '<div style="font-size:13px;color:#555;margin-top:2px">' + p.nombre + '</div>'
+    + '<div style="font-size:11px;color:#aaa;margin-top:4px">Corte: ' + fecha + '</div>'
+    + '</div>'
+    + '<div style="font-size:15px;font-weight:700;color:#111;white-space:nowrap;margin-left:12px">-' + fmt(p.mensualidad) + '</div>'
+    + '</div>'
+  ).join('');
+  document.getElementById('modal-promos-historial').classList.add('open');
+}
+
+window.cerrarModalPromosHistorial = function(e){
+  if(!e || e.target===document.getElementById('modal-promos-historial'))
+    document.getElementById('modal-promos-historial').classList.remove('open');
 }
 
 window.setNavActive = function(id){
@@ -3094,7 +3111,7 @@ window.confirmarEliminarPerfil = async function(){
 
 <div class="screen hidden" id="screen-movimientos">
   <div style="width:100%;background:#fff;border-radius:24px;padding:20px 16px;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
-    <div style="margin-bottom:16px">
+    <div id="leyenda-historial" style="margin-bottom:16px">
       <div style="font-size:15px;font-weight:600;color:#888;text-align:center">Selecciona la tarjeta a consultar</div>
     </div>
     <!-- Selector Banco -->
@@ -3187,15 +3204,14 @@ window.confirmarEliminarPerfil = async function(){
       </div>
     </div>
 
-    <div class="section-card" id="recuadro-promos-historial" style="display:none;margin:0 0 12px">
-      <div class="section-card-title">Promociones</div>
-      <div id="promos-historial-lista" style="max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
-    </div>
+    <button id="recuadro-promos-historial" onclick="abrirModalPromosHistorial()" style="display:none;width:100%;padding:14px;border-radius:14px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:12px;text-align:center">
+      Promociones
+    </button>
 
     <!-- Movimientos -->
     <div class="section-card" id="recuadro-movimientos" style="display:none;margin:0 0 12px">
       <div class="section-card-title">Movimientos</div>
-      <div id="movimientos-full" style="max-height:315px;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
+      <div id="movimientos-full" style="max-height:441px;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
     </div>
   </div>
 </div>
@@ -3372,6 +3388,15 @@ window.confirmarEliminarPerfil = async function(){
       <button onclick="cerrarEditPromo()" style="padding:13px;border-radius:12px;border:1.5px solid #e0e0e0;background:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#111">Cancelar</button>
       <button onclick="guardarEditPromo()" class="modal-save" style="margin-top:0">Guardar</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal promociones historial -->
+<div class="modal-overlay" id="modal-promos-historial" onclick="cerrarModalPromosHistorial(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:16px">Promociones activas</div>
+    <div id="modal-promos-historial-lista" style="max-height:50vh;overflow-y:auto;scrollbar-width:none"></div>
   </div>
 </div>
 
