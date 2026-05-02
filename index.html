@@ -879,6 +879,9 @@ function buildCarrusel(){
       </div>
       <div class="card-use-bar"><div class="card-use-fill" id="bar-${i}" style="width:0%"></div></div>
       <div class="card-use-pct" id="pct-${i}">0% utilizado</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:8px">
+        Importe + Meses: <strong id="total-con-msi-${i}" style="color:#fff">$0.00</strong>
+      </div>
       <div class="card-divider"></div>
       <div class="card-corte-row" style="justify-content:space-between">
         <div style="display:flex;align-items:center;gap:6px">
@@ -1037,7 +1040,7 @@ function updateCards(){
       .filter(p=>p.tarjetaId===t.id)
       .filter(p=>{ const mPag = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, 1+Math.floor((Date.now()-p.creadoEn)/(1000*60*60*24*30))); return mPag < p.meses; })
       .reduce((s,p)=>s+p.mensualidad, 0);
-    const usado = usadoMovs + mensualidadesPromo;
+    const usado = usadoMovs; // Solo gastos del corte actual
     const sobregiro = usado > t.limite;
     const disp = sobregiro ? 0 : t.limite - usado;
     const exceso = sobregiro ? usado - t.limite : 0;
@@ -1049,6 +1052,11 @@ function updateCards(){
     const pctEl=document.getElementById(`pct-${i}`);
     if(usadoEl) usadoEl.textContent=fmt(usado);
     if(dispEl) dispEl.textContent = sobregiro ? `Sobregiro: ${fmt(exceso)}` : fmt(disp);
+    // Importe + Meses: gastos del corte + mensualidades activas de promos
+    const usadoMovsSolo = movimientos.filter(m=>m.tarjetaId===t.id&&new Date(m.fecha+'T12:00:00')>=inicio&&new Date(m.fecha+'T12:00:00')<=fin).reduce((s,m)=>s+m.monto,0);
+    const msiTotal = promocionesCache.filter(p=>p.tarjetaId===t.id).filter(p=>{ const mP=p.mesesPagados!==undefined?p.mesesPagados:Math.min(p.meses,1+Math.floor((Date.now()-p.creadoEn)/(1000*60*60*24*30))); return mP<p.meses; }).reduce((s,p)=>s+p.mensualidad,0);
+    const totalMsiEl = document.getElementById(`total-con-msi-${i}`);
+    if(totalMsiEl) totalMsiEl.textContent = fmt(usadoMovsSolo + msiTotal);
     if(barEl){
       barEl.style.width = pct+'%';
       barEl.style.background = sobregiro ? 'rgba(255,255,255,0.5)' : '#fff';
