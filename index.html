@@ -180,6 +180,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* Date Picker */
 #scroll-anio::-webkit-scrollbar,#scroll-mes::-webkit-scrollbar,#scroll-dia::-webkit-scrollbar{display:none}
 .scroll-item{height:44px;min-height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:#888;cursor:pointer;scroll-snap-align:start;transition:color 0.15s;width:100%;text-align:center}
+.dp-item{height:60px;min-height:60px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#bbb;cursor:pointer;scroll-snap-align:start;transition:color 0.2s,font-size 0.2s;width:100%;text-align:center}
+.dp-item.sel{color:#111;font-size:21px;font-weight:700}
 .scroll-item.sel{color:#fff !important;font-size:17px;font-weight:700}
 #scroll-meses-cont::-webkit-scrollbar{display:none}
 .modal-handle{width:40px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 20px}
@@ -2827,32 +2829,34 @@ window.confirmarEliminarPerfil = async function(){
   <div class="modal" style="padding:0;overflow:hidden">
     <div class="modal-handle" style="margin-top:12px"></div>
     <div style="padding:16px 20px 8px;font-size:16px;font-weight:700;color:#111;text-align:center">Seleccionar fecha</div>
-    <div style="display:flex;gap:0;padding:0 8px 16px">
+    <div style="position:relative;display:flex;gap:0;padding:0 8px 16px">
+      <!-- Línea central de selección -->
+      <div style="position:absolute;left:8px;right:8px;top:50%;transform:translateY(-50%);height:60px;background:rgba(0,0,0,0.06);border-radius:8px;pointer-events:none;z-index:0"></div>
       <!-- Año -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center">
         <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Año</div>
-        <div id="scroll-anio" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%">
-          <div style="height:60px"></div><!-- padding top -->
+        <div id="scroll-anio" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
+          <div style="height:60px;flex-shrink:0"></div>
           <div id="scroll-anio-items"></div>
-          <div style="height:60px"></div><!-- padding bottom -->
+          <div style="height:60px;flex-shrink:0"></div>
         </div>
       </div>
       <!-- Mes -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center">
         <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Mes</div>
-        <div id="scroll-mes" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%">
-          <div style="height:60px"></div>
+        <div id="scroll-mes" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
+          <div style="height:60px;flex-shrink:0"></div>
           <div id="scroll-mes-items"></div>
-          <div style="height:60px"></div>
+          <div style="height:60px;flex-shrink:0"></div>
         </div>
       </div>
       <!-- Día -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center">
         <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Día</div>
-        <div id="scroll-dia" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%">
-          <div style="height:60px"></div>
+        <div id="scroll-dia" style="height:180px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;width:100%;-webkit-overflow-scrolling:touch">
+          <div style="height:60px;flex-shrink:0"></div>
           <div id="scroll-dia-items"></div>
-          <div style="height:60px"></div>
+          <div style="height:60px;flex-shrink:0"></div>
         </div>
       </div>
     </div>
@@ -2941,11 +2945,11 @@ window.abrirDatePicker = function(){
 
   // Construir listas
   document.getElementById('scroll-anio-items').innerHTML = anios.map((a,i)=>`
-    <div class="scroll-item${i===selAnio?' sel':''}" data-idx="${i}">${a}</div>`).join('');
+    <div class="dp-item${i===selAnio?' sel':''}" data-idx="${i}">${a}</div>`).join('');
   document.getElementById('scroll-mes-items').innerHTML = meses.map((m,i)=>`
-    <div class="scroll-item${i===selMes?' sel':''}" data-idx="${i}">${m}</div>`).join('');
+    <div class="dp-item${i===selMes?' sel':''}" data-idx="${i}">${m}</div>`).join('');
   document.getElementById('scroll-dia-items').innerHTML = dias.map((d,i)=>`
-    <div class="scroll-item${i===selDia?' sel':''}" data-idx="${i}">${d}</div>`).join('');
+    <div class="dp-item${i===selDia?' sel':''}" data-idx="${i}">${d}</div>`).join('');
 
   // Scroll inicial
   setTimeout(()=>{
@@ -2958,35 +2962,35 @@ window.abrirDatePicker = function(){
   document.getElementById('scroll-anio').onscroll = ()=>{
     const idx = Math.round(document.getElementById('scroll-anio').scrollTop/60);
     dpAnio = anios[idx] || anioActual;
-    document.getElementById('scroll-anio-items').querySelectorAll('.scroll-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+    document.getElementById('scroll-anio-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
     // Recalcular días
     const maxD2 = diasEnMes(dpMes, dpAnio);
     const dias2 = Array.from({length:maxD2},(_,i)=>String(i+1).padStart(2,'0'));
     const selD2 = Math.min(dpDia-1, maxD2-1);
     document.getElementById('scroll-dia-items').innerHTML = dias2.map((d,i)=>`
-      <div class="scroll-item${i===selD2?' sel':''}" data-idx="${i}">${d}</div>`).join('');
+      <div class="dp-item${i===selD2?' sel':''}" data-idx="${i}">${d}</div>`).join('');
     document.getElementById('scroll-dia').scrollTop = selD2*60;
     document.getElementById('scroll-dia').onscroll = ()=>{
       const i2=Math.round(document.getElementById('scroll-dia').scrollTop/60);
       dpDia=i2+1;
-      document.getElementById('scroll-dia-items').querySelectorAll('.scroll-item').forEach((el,i)=>el.classList.toggle('sel',i===i2));
+      document.getElementById('scroll-dia-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===i2));
     };
   };
   document.getElementById('scroll-mes').onscroll = ()=>{
     const idx = Math.round(document.getElementById('scroll-mes').scrollTop/60);
     dpMes = idx+1;
-    document.getElementById('scroll-mes-items').querySelectorAll('.scroll-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+    document.getElementById('scroll-mes-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
     const maxD2=diasEnMes(dpMes,dpAnio);
     const dias2=Array.from({length:maxD2},(_,i)=>String(i+1).padStart(2,'0'));
     const selD2=Math.min(dpDia-1,maxD2-1);
     document.getElementById('scroll-dia-items').innerHTML=dias2.map((d,i)=>`
-      <div class="scroll-item${i===selD2?' sel':''}" data-idx="${i}">${d}</div>`).join('');
+      <div class="dp-item${i===selD2?' sel':''}" data-idx="${i}">${d}</div>`).join('');
     document.getElementById('scroll-dia').scrollTop=selD2*60;
   };
   document.getElementById('scroll-dia').onscroll = ()=>{
     const idx=Math.round(document.getElementById('scroll-dia').scrollTop/60);
     dpDia=idx+1;
-    document.getElementById('scroll-dia-items').querySelectorAll('.scroll-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+    document.getElementById('scroll-dia-items').querySelectorAll('.dp-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
   };
 
   document.getElementById('datepicker-overlay').classList.add('open');
