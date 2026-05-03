@@ -358,7 +358,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <!-- 2. Tarjeta -->
       <div class="ob-field">
         <div class="ob-label">Tarjeta <span style="font-weight:400;color:#aaa">(opcional)</span></div>
-        <input class="ob-input" id="inp-apodo-ob" placeholder="Ej. Personal, Nómina, Débito..." maxlength="30" />
+        <input class="ob-input" id="inp-apodo-ob" placeholder="Ej. Personal, Nómina, Débito..." maxlength="30"
+          onfocus="document.getElementById('banco-ob-scroll-wrap').style.display='none';document.getElementById('corte-ob-scroll-wrap').style.display='none';" />
       </div>
       <!-- 3. Fecha de corte - scroll -->
       <div class="ob-field">
@@ -388,7 +389,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="ob-label">Límite de gasto</div>
         <div class="ob-prefix-wrap">
           <span class="ob-prefix">$</span>
-          <input class="ob-input ob-input-prefix" id="inp-limite-ob" type="number" placeholder="0.00" min="0" step="100" />
+          <input class="ob-input ob-input-prefix" id="inp-limite-ob" type="number" placeholder="0.00" min="0" step="100"
+            onfocus="document.getElementById('banco-ob-scroll-wrap').style.display='none';document.getElementById('corte-ob-scroll-wrap').style.display='none';" />
         </div>
       </div>
       <div class="ob-action-btns" id="ob-action-btns">
