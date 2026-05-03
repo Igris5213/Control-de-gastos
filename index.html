@@ -1048,7 +1048,12 @@ function updateCards(){
     // Mensualidades activas de promociones de esta tarjeta
     const mensualidadesPromo = promocionesCache
       .filter(p=>p.tarjetaId===t.id)
-      .filter(p=>{ const mPag = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, 1+Math.floor((Date.now()-p.creadoEn)/(1000*60*60*24*30))); return mPag < p.meses; })
+      .filter(p=>{
+        const tP = perfil?.tarjetas?.find(x=>x.id===p.tarjetaId);
+        const cP = tP ? tP.corte : 1;
+        const mPag = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, Math.max(0, getMesPagoPromo(cP, p.creadoEn, fin)));
+        return mPag > 0 && mPag <= p.meses;
+      })
       .reduce((s,p)=>s+p.mensualidad, 0);
     const usado = usadoMovs; // Solo gastos del corte actual
     const sobregiro = usado > t.limite;
@@ -1062,9 +1067,14 @@ function updateCards(){
     const pctEl=document.getElementById(`pct-${i}`);
     if(usadoEl) usadoEl.textContent=fmt(usado);
     if(dispEl) dispEl.textContent = sobregiro ? `Sobregiro: ${fmt(exceso)}` : fmt(disp);
-    // Importe + Meses: gastos del corte + mensualidades activas de promos
+    // Importe + Meses: gastos del corte + mensualidades activas en ESTE corte
     const usadoMovsSolo = movimientos.filter(m=>m.tarjetaId===t.id&&new Date(m.fecha+'T12:00:00')>=inicio&&new Date(m.fecha+'T12:00:00')<=fin).reduce((s,m)=>s+m.monto,0);
-    const msiTotal = promocionesCache.filter(p=>p.tarjetaId===t.id).filter(p=>{ const mP=p.mesesPagados!==undefined?p.mesesPagados:Math.min(p.meses,1+Math.floor((Date.now()-p.creadoEn)/(1000*60*60*24*30))); return mP<p.meses; }).reduce((s,p)=>s+p.mensualidad,0);
+    // Solo sumar mensualidades cuyo cobro cae en el corte actual
+    const msiTotal = promocionesCache.filter(p=>p.tarjetaId===t.id).filter(p=>{
+      if(p.mesesPagados >= p.meses) return false; // liquidada
+      // Calcular si este corte (fin) es un cobro de la promo
+      return promoCobraEnCorte(p, t.corte, fin);
+    }).reduce((s,p)=>s+p.mensualidad,0);
     const totalMsiEl = document.getElementById(`total-con-msi-${i}`);
     if(totalMsiEl) totalMsiEl.textContent = fmt(usadoMovsSolo + msiTotal);
     if(barEl){
@@ -2348,7 +2358,10 @@ async function renderPromociones(){
     });
     lista.innerHTML = html;
     lista.querySelectorAll('.btn-ver-promo').forEach(function(btn){
-      btn.addEventListener('click', function(){ verPromo(btn.dataset.id); });
+      btn.addEventListener('click', function(e){ 
+        e.stopPropagation();
+        verPromo(btn.dataset.id); 
+      });
     });
     lista.querySelectorAll('.banco-header').forEach(function(header){
       header.addEventListener('click', function(){
@@ -2367,8 +2380,11 @@ async function renderPromociones(){
 
 window.abrirEditarPromo = async function(id){
   try{
-    const snap = await getDocs(query(collection(db,'promociones')));
-    const p = snap.docs.map(d=>({id:d.id,...d.data()})).find(x=>x.id===id);
+    let p = promocionesCache.find(x=>x.id===id);
+    if(!p){
+      const snap = await getDocs(query(collection(db,'promociones')));
+      p = snap.docs.map(d=>({id:d.id,...d.data()})).find(x=>x.id===id);
+    }
     if(!p) return;
     // Cerrar modal detalle
     document.getElementById('modal-detalle-promo').classList.remove('open');
@@ -2516,14 +2532,20 @@ window.confirmarEliminarPromo = async function(){
 
 window.verPromo = async function(id){
   try{
-    const snap = await getDocs(query(collection(db,'promociones')));
-    const p = snap.docs.map(d=>({id:d.id,...d.data()})).find(x=>x.id===id);
+    let p = promocionesCache.find(x=>x.id===id);
+    if(!p){
+      const snap = await getDocs(query(collection(db,'promociones')));
+      p = snap.docs.map(d=>({id:d.id,...d.data()})).find(x=>x.id===id);
+    }
     if(!p) return;
 
     // La primera mensualidad ya está pagada al momento de registrar
-    const mesesTranscurridos = p.mesesPagados !== undefined 
-      ? p.mesesPagados 
-      : Math.min(p.meses, 1 + Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
+    const tarjetaP = (perfil?.tarjetas||[]).find(t=>t.id===p.tarjetaId);
+    const corteP = tarjetaP ? tarjetaP.corte : 1;
+    const mesesCalculadosV = getMesPagoPromo(corteP, p.creadoEn, new Date());
+    const mesesTranscurridos = p.mesesPagados !== undefined
+      ? p.mesesPagados
+      : Math.min(p.meses, Math.max(0, mesesCalculadosV));
     const mesesFaltantes = p.meses - mesesTranscurridos;
     const importePagado = p.mensualidad * mesesTranscurridos;
     const importeFaltante = p.importe - importePagado;
@@ -2637,6 +2659,31 @@ window.verDetalleGasto = function(id){
     + '<div style="margin-bottom:20px"><div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Importe</div><div style="font-size:26px;font-weight:700;color:#111">-' + fmt(m.monto) + '</div></div>'
     + '<button onclick="cerrarDetalleGasto()" style="width:100%;padding:13px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Cerrar</button>';
   document.getElementById('modal-detalle-gasto').classList.add('open');
+}
+
+// Determina si una promoción tiene cobro en el corte cuya fecha de fin es corteFin
+// corte: día del mes (1-31), corteFin: Date del fin del corte
+function promoCobraEnCorte(p, corte, corteFin){
+  const pagados = p.mesesPagados !== undefined ? p.mesesPagados : 0;
+  if(pagados >= p.meses) return false; // liquidada
+  // Calcular fecha del primer cobro: primer corte después de creadoEn
+  const creado = new Date(p.creadoEn);
+  let primerCorte = new Date(creado.getFullYear(), creado.getMonth(), corte);
+  // Si el día de corte ya pasó en el mes de creación, primer cobro es el mes siguiente
+  if(primerCorte <= creado){
+    primerCorte = new Date(creado.getFullYear(), creado.getMonth()+1, corte);
+  }
+  // Calcular fechas de los cobros pendientes (desde pagados+1 hasta meses)
+  for(let i = pagados; i < p.meses; i++){
+    const fechaCobro = new Date(primerCorte.getFullYear(), primerCorte.getMonth()+i, corte);
+    // Comparar solo año/mes/día con corteFin
+    if(fechaCobro.getFullYear()===corteFin.getFullYear() &&
+       fechaCobro.getMonth()===corteFin.getMonth() &&
+       fechaCobro.getDate()===corteFin.getDate()){
+      return true;
+    }
+  }
+  return false;
 }
 
 window.setNavActive = function(id){
