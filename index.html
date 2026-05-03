@@ -561,6 +561,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-title"></div>
+    <div class="field-wrap" id="campo-comercio-wrap">
+      <div class="field-label">Comercio</div>
+      <input class="inp" id="inp-comercio" placeholder="Ej. Walmart, OXXO..." maxlength="50"/>
+    </div>
+    <div class="field-wrap" id="campo-concepto-wrap">
+      <div class="field-label">Concepto</div>
+      <input class="inp" id="inp-concepto" placeholder="Ej. Despensa, gasolina..." maxlength="80"/>
+    </div>
     <div class="field-wrap">
       <div class="field-label">Monto</div>
       <div class="amount-wrap">
@@ -1145,7 +1153,7 @@ function renderMovimientos(){
 
   if(!filtrados.length){ el.innerHTML=`<div class="empty-mov">Sin movimientos en el corte actual</div>`; return; }
   el.innerHTML = filtrados.map((m,idx)=>`
-    <div class="mov-item" onclick="resaltarMov(this)" >
+    <div class="mov-item" onclick="resaltarMov(this)" onmousedown="startLongPress(this)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()" ontouchstart="startLongPress(this)" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()" data-id="${m.id}">
       <div class="mov-icon"><svg width="16" height="16" fill="none" stroke="#111" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg></div>
       <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
       <div class="mov-amount">-${fmt(m.monto)}</div>
@@ -1164,6 +1172,11 @@ window.openModal = function(){
   document.getElementById('modal-title').textContent='';
   document.getElementById('modal-save-btn').textContent='Guardar';
   document.getElementById('inp-monto').value='';
+  document.getElementById('inp-comercio').value='';
+  document.getElementById('inp-concepto').value='';
+  // Ocultar comercio/detalle al editar (solo para nuevo)
+  document.getElementById('campo-comercio-wrap').style.display = editingId ? 'none' : '';
+  document.getElementById('campo-concepto-wrap').style.display = editingId ? 'none' : '';
   document.getElementById('modal-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('inp-monto').focus(),300);
 }
@@ -1200,7 +1213,9 @@ window.guardar = async function(){
       const now=new Date();
       const datos={
         tipo:'egreso', tarjetaId:t.id, banco:t.nombre, monto,
-        fecha:now.toISOString().split('T')[0], creadoEn:now.getTime()
+        fecha:now.toISOString().split('T')[0], creadoEn:now.getTime(),
+        comercio: document.getElementById('inp-comercio').value.trim(),
+        concepto: document.getElementById('inp-concepto').value.trim()
       };
       try {
         await addDoc(collection(db,'movimientos'), datos);
@@ -1618,7 +1633,9 @@ window.guardarExt = async function(){
     banco: t.nombre,
     monto: monto,
     fecha: fecha,
-    creadoEn: fechaConHora.getTime()
+    creadoEn: fechaConHora.getTime(),
+    comercio: document.getElementById('inp-comercio-ext').value.trim(),
+    concepto: document.getElementById('inp-concepto-ext').value.trim()
   };
 
   try{
@@ -1626,6 +1643,8 @@ window.guardarExt = async function(){
     document.getElementById('modal-ext-overlay').classList.remove('open');
     document.getElementById('inp-monto-ext').value = '';
     document.getElementById('inp-fecha-ext').value = '';
+    document.getElementById('inp-comercio-ext').value = '';
+    document.getElementById('inp-concepto-ext').value = '';
     showSuccess('Movimiento guardado', 'Tu gasto extemporáneo fue registrado');
     // Verificar sobregiro después de que onSnapshot actualice movimientos
     const _tSobExt = t;
@@ -1778,7 +1797,7 @@ function renderMovimientosFull(tarjetaId){
     return;
   }
   el.innerHTML = data.map(m=>`
-    <div class="mov-item" onclick="resaltarMov(this)">
+    <div class="mov-item" onclick="resaltarMov(this)" onmousedown="startLongPress(this)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()" ontouchstart="startLongPress(this)" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()" data-id="${m.id}">
       <div class="mov-icon"><svg width="16" height="16" fill="none" stroke="#111" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg></div>
       <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
       <div class="mov-amount">-${fmt(m.monto)}</div>
@@ -2017,7 +2036,7 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
     return;
   }
   el.innerHTML = data.map(m=>`
-    <div class="mov-item" onclick="resaltarMov(this)">
+    <div class="mov-item" onclick="resaltarMov(this)" onmousedown="startLongPress(this)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()" ontouchstart="startLongPress(this)" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()" data-id="${m.id}">
       <div class="mov-icon"><svg width="16" height="16" fill="none" stroke="#111" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg></div>
       <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
       <div class="mov-amount">-${fmt(m.monto)}</div>
@@ -2074,6 +2093,39 @@ window.nuevaBusqueda = function(){
   });
   // Recargar lista de bancos (sin abrir dropdown)
   cargarBancosFiltro();
+}
+
+// Long press para ver detalle del gasto
+let _longPressTimer = null;
+let _longPressEl = null;
+
+window.startLongPress = function(el){
+  _longPressEl = el;
+  _longPressTimer = setTimeout(()=>{
+    _longPressTimer = null; // marcamos que fue longpress
+    const id = el.dataset.id;
+    if(id){
+      const m = movimientos.find(x=>x.id===id);
+      if(m && (m.comercio || m.concepto || m.detalle)){
+        verDetalleGasto(id);
+      }
+    }
+  }, 500);
+}
+
+window.cancelLongPress = function(){
+  if(_longPressTimer){
+    clearTimeout(_longPressTimer);
+    _longPressTimer = null;
+    _longPressEl = null;
+  }
+}
+
+window.cancelLongPress = function(){
+  if(_longPressTimer){
+    clearTimeout(_longPressTimer);
+    _longPressTimer = null;
+  }
 }
 
 window.resaltarMov = function(el){
@@ -2569,6 +2621,24 @@ window.cerrarModalPromosHistorial = function(e){
     document.getElementById('modal-promos-historial').classList.remove('open');
 }
 
+window.cerrarDetalleGasto = function(e){
+  if(!e || e.target===document.getElementById('modal-detalle-gasto'))
+    document.getElementById('modal-detalle-gasto').classList.remove('open');
+}
+
+window.verDetalleGasto = function(id){
+  const m = movimientos.find(x=>x.id===id);
+  if(!m) return;
+  if(!m.comercio && !m.detalle){ return; } // sin info extra, no abrir
+  document.getElementById('detalle-gasto-content').innerHTML =
+    (m.comercio?'<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Comercio</div><div style="font-size:16px;font-weight:600;color:#111">' + m.comercio + '</div></div>':'')
+    + ((m.concepto||m.detalle)?'<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Concepto</div><div style="font-size:15px;color:#333">' + (m.concepto||m.detalle) + '</div></div>':'')
+    + '<div style="margin-bottom:20px"><div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Fecha</div><div style="font-size:15px;color:#333">' + fmtDateShort(m.fecha, m.creadoEn) + '</div></div>'
+    + '<div style="margin-bottom:20px"><div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Importe</div><div style="font-size:26px;font-weight:700;color:#111">-' + fmt(m.monto) + '</div></div>'
+    + '<button onclick="cerrarDetalleGasto()" style="width:100%;padding:13px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Cerrar</button>';
+  document.getElementById('modal-detalle-gasto').classList.add('open');
+}
+
 window.setNavActive = function(id){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const el = document.getElementById(id);
@@ -2801,6 +2871,14 @@ window.confirmarEliminarPerfil = async function(){
 <div class="modal-overlay" id="modal-ext-overlay" onclick="closeModalExtOut(event)">
   <div class="modal">
     <div class="modal-handle"></div>
+    <div class="field-wrap">
+      <div class="field-label">Comercio</div>
+      <input class="inp" id="inp-comercio-ext" placeholder="Ej. Walmart, OXXO..." maxlength="50"/>
+    </div>
+    <div class="field-wrap">
+      <div class="field-label">Concepto</div>
+      <input class="inp" id="inp-concepto-ext" placeholder="Ej. Despensa, gasolina..." maxlength="80"/>
+    </div>
     <div class="field-wrap">
       <div class="field-label">Monto</div>
       <div class="amount-wrap">
@@ -3064,7 +3142,9 @@ window.guardarExt = async function(){
     banco: t.nombre,
     monto: monto,
     fecha: fecha,
-    creadoEn: fechaConHora.getTime()
+    creadoEn: fechaConHora.getTime(),
+    comercio: document.getElementById('inp-comercio-ext').value.trim(),
+    concepto: document.getElementById('inp-concepto-ext').value.trim()
   };
 
   try{
@@ -3072,6 +3152,8 @@ window.guardarExt = async function(){
     document.getElementById('modal-ext-overlay').classList.remove('open');
     document.getElementById('inp-monto-ext').value = '';
     document.getElementById('inp-fecha-ext').value = '';
+    document.getElementById('inp-comercio-ext').value = '';
+    document.getElementById('inp-concepto-ext').value = '';
     showSuccess('Movimiento guardado', 'Tu gasto extemporáneo fue registrado');
     // Verificar sobregiro después de que onSnapshot actualice movimientos
     const _tSobExt = t;
@@ -3430,8 +3512,15 @@ window.confirmarEliminarPerfil = async function(){
 <div class="modal-overlay" id="modal-promos-historial" onclick="cerrarModalPromosHistorial(event)">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:16px">Promociones activas</div>
     <div id="modal-promos-historial-lista" style="max-height:50vh;overflow-y:auto;scrollbar-width:none"></div>
+  </div>
+</div>
+
+<!-- Modal detalle gasto -->
+<div class="modal-overlay" id="modal-detalle-gasto" onclick="cerrarDetalleGasto(event)" style="align-items:center">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detalle-gasto-content"></div>
   </div>
 </div>
 
