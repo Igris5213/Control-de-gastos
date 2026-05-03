@@ -2003,40 +2003,38 @@ window.seleccionarBancoMov = function(nombre){
   pasoApodo.style.display = 'block';
   document.getElementById('lista-apodos-btns').innerHTML = tarjetas.map(t=>`
     <div data-id="${t.id}" onclick="seleccionarApodoMov('${t.id}','${(t.apodo||t.nombre).replace(/'/g,"\'")}','${t.corte}')"
-      style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.15);cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#1e1e1e;color:#fff;font-weight:500;font-size:14px">
-      <span>${t.apodo||'Sin apodo'}</span>
-      <span style="color:rgba(255,255,255,0.5);font-size:12px">Corte día ${t.corte}</span>
+      style="padding:14px 16px;border-bottom:1px solid #e8e8e8;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#fff;color:#111;font-weight:500;font-size:14px">
+      <span>${t.apodo||t.nombre}</span>
+      <span style="color:#aaa;font-size:12px">Corte día ${t.corte}</span>
     </div>`).join('');
   // Si solo hay una tarjeta, seleccionarla automáticamente
   if(tarjetas.length === 1){
     const t = tarjetas[0];
     seleccionarApodoMov(t.id, t.apodo||t.nombre, t.corte);
   } else {
-    // Abrir dropdown automáticamente
+    // Abrir dropdown
     document.getElementById('dd-tarjetas').style.display = 'block';
     document.getElementById('dd-tarjetas-icon').style.transform = 'rotate(180deg)';
   }
 }
 
 window.seleccionarApodoMov = function(tarjetaId, apodo, corte){
-  // Actualizar texto y cerrar dropdown
   document.getElementById('tarjeta-seleccionada-txt').textContent = apodo;
   document.getElementById('dd-tarjetas').style.display = 'none';
   document.getElementById('dd-tarjetas-icon').style.transform = '';
-  // Resaltar opción
+  // Resaltar opción seleccionada
   document.querySelectorAll('#lista-apodos-btns div').forEach(b=>{
-    b.style.background = b.dataset.id===tarjetaId ? '#111' : '#fff';
-    b.style.color = b.dataset.id===tarjetaId ? '#fff' : '#111';
-    b.style.fontWeight = b.dataset.id===tarjetaId ? '700' : '500';
+    const sel = b.dataset.id===tarjetaId;
+    b.style.background = sel ? 'linear-gradient(180deg,#111,#444)' : '#fff';
+    b.style.color = sel ? '#fff' : '#111';
+    b.style.fontWeight = sel ? '700' : '500';
   });
-  // Mostrar selector de AÑO
   const t = perfil.tarjetas.find(x=>x.id===tarjetaId);
   if(!t) return;
   window._movTarjetaId = tarjetaId;
   window._movCorte = t.corte;
   const anios = getAniosDisponibles(tarjetaId, t.corte);
-  const pasoAnio = document.getElementById('paso-anio');
-  pasoAnio.style.display = 'block';
+  document.getElementById('paso-anio').style.display = 'block';
   document.getElementById('anio-seleccionado-txt').textContent = 'Seleccionar año';
   document.getElementById('dd-anios').style.display = 'none';
   document.getElementById('paso-corte').style.display = 'none';
@@ -2045,24 +2043,19 @@ window.seleccionarApodoMov = function(tarjetaId, apodo, corte){
   document.getElementById('btn-nueva-busqueda').style.display = 'none';
 
   if(!anios.length){
-    document.getElementById('lista-anios-btns').innerHTML = '<div style="padding:14px 16px;color:#aaa;font-size:14px">Sin movimientos registrados</div>';
+    document.getElementById('lista-anios-btns').innerHTML = '<div style="padding:14px 16px;color:rgba(255,255,255,0.4);font-size:14px">Sin movimientos registrados</div>';
     document.getElementById('dd-anios').style.display = 'block';
     document.getElementById('dd-anios-icon').style.transform = 'rotate(180deg)';
-  } else if(anios.length === 1){
-    // Solo un año, seleccionarlo automáticamente
-    seleccionarAnioMov(anios[0]);
   } else {
     document.getElementById('lista-anios-btns').innerHTML = anios.map(a=>`
       <div data-anio="${a}" onclick="seleccionarAnioMov(${a})"
-        style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.15);cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#1e1e1e;color:#fff;font-weight:500;font-size:14px">
+        style="padding:14px 16px;border-bottom:1px solid #e8e8e8;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#fff;color:#111;font-weight:500;font-size:14px">
         <span>${a}</span>
-        <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <svg width="16" height="16" fill="none" stroke="#aaa" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </div>`).join('');
-    // Abrir dropdown automáticamente
     document.getElementById('dd-anios').style.display = 'block';
     document.getElementById('dd-anios-icon').style.transform = 'rotate(180deg)';
   }
-  toggleDropdown('dd-anios');
 }
 
 
@@ -2072,8 +2065,8 @@ window.seleccionarAnioMov = function(anio){
   // Resaltar año seleccionado
   document.querySelectorAll('#lista-anios-btns div').forEach(b=>{
     const sel = parseInt(b.dataset.anio)===anio;
-    b.style.background = sel ? '#111' : '#1e1e1e';
-    b.style.color = sel ? '#fff' : 'rgba(255,255,255,0.8)';
+    b.style.background = sel ? 'linear-gradient(180deg,#111,#444)' : '#fff';
+    b.style.color = sel ? '#fff' : '#111';
     b.style.fontWeight = sel ? '700' : '500';
   });
   document.getElementById('anio-seleccionado-txt').textContent = anio;
@@ -2094,17 +2087,12 @@ window.seleccionarAnioMov = function(anio){
 
   document.getElementById('lista-cortes-btns').innerHTML = cortes.map(c=>`
     <div data-key="${c.key}" onclick="seleccionarCorteMov('${tarjetaId}',${corte},'${c.key}')"
-      style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.15);cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#1e1e1e;color:#fff;font-weight:500;font-size:14px">
+      style="padding:14px 16px;border-bottom:1px solid #e8e8e8;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#fff;color:#111;font-weight:500;font-size:14px">
       <span style="text-transform:capitalize">${c.nombre}</span>
-      <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      <svg width="16" height="16" fill="none" stroke="#aaa" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
     </div>`).join('');
-  // Si solo hay un corte, seleccionarlo automáticamente
-  if(cortes.length === 1){
-    seleccionarCorteMov(tarjetaId, corte, cortes[0].key);
-  } else {
-    document.getElementById('dd-cortes').style.display = 'block';
-    document.getElementById('dd-cortes-icon').style.transform = 'rotate(180deg)';
-  }
+  document.getElementById('dd-cortes').style.display = 'block';
+  document.getElementById('dd-cortes-icon').style.transform = 'rotate(180deg)';
 }
 
 window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
@@ -2121,25 +2109,22 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
   document.getElementById('corte-seleccionado-txt').textContent = nombre.charAt(0).toUpperCase()+nombre.slice(1);
   document.getElementById('dd-cortes').style.display = 'none';
   document.getElementById('dd-cortes-icon').style.transform = '';
-  // Ocultar todos los selectores y la leyenda
-  ['paso-banco-hist','paso-apodo','paso-anio','paso-corte'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.style.display='none';
-  });
-  const leyenda = document.getElementById('leyenda-historial');
-  if(leyenda) leyenda.style.display='none';
-  // Mostrar resumen de selección
+  // Guardar selección para confirmación
+  window._pendingTarjetaId = tarjetaId;
+  window._pendingCorte = corte;
+  window._pendingPeriodoFin = periodoFin;
+  // Mostrar modal de confirmación
   const tResumen = (perfil?.tarjetas||[]).find(x=>x.id===tarjetaId);
-  document.getElementById('resumen-banco').textContent = document.getElementById('banco-seleccionado-txt').textContent;
-  document.getElementById('resumen-tarjeta').textContent = tResumen?.apodo||tResumen?.nombre||'—';
-  document.getElementById('resumen-anio').textContent = document.getElementById('anio-seleccionado-txt').textContent;
-  document.getElementById('resumen-corte').textContent = document.getElementById('corte-seleccionado-txt').textContent;
-  document.getElementById('resumen-seleccion').style.display = 'block';
-  document.getElementById('btn-nueva-busqueda').style.display = 'flex';
-  // Mostrar movimientos del corte
-  const data = movsPorCorte(tarjetaId, corte, periodoFin);
-  const rec = document.getElementById('recuadro-movimientos');
-  rec.style.display = 'block';
+  const bancoTxt = document.getElementById('banco-seleccionado-txt').textContent;
+  const tarjetaTxt = tResumen?.apodo||tResumen?.nombre||'—';
+  const anioTxt = document.getElementById('anio-seleccionado-txt').textContent;
+  const corteTxt = document.getElementById('corte-seleccionado-txt').textContent;
+  document.getElementById('confirm-hist-banco').textContent = bancoTxt;
+  document.getElementById('confirm-hist-tarjeta').textContent = tarjetaTxt;
+  document.getElementById('confirm-hist-anio').textContent = anioTxt;
+  document.getElementById('confirm-hist-corte').textContent = corteTxt;
+  document.getElementById('modal-confirm-hist').classList.add('open');
+  // Los movimientos se muestran al confirmar (aceptarConfirmHist)
   // Mostrar promociones vigentes de esta tarjeta en este corte
   const promosVigentes = promocionesCache.filter(p=>{
     if(p.tarjetaId !== tarjetaId) return false;
@@ -2217,6 +2202,10 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
 }
 
 window.nuevaBusqueda = function(){
+  // Restaurar elementos que fueron ocultados con querySelectorAll
+  document.querySelectorAll('#screen-movimientos > div > [style*="background:linear-gradient"]').forEach(el=>{
+    el.style.display = '';
+  });
   // Ocultar resultados
   document.getElementById('recuadro-movimientos').style.display = 'none';
   document.getElementById('movimientos-full').innerHTML = '';
@@ -2869,6 +2858,212 @@ function promoCobraEnCorte(p, corte, corteFin){
   }
   return false;
 }
+
+window.confirmarBusquedaHistorial = function(){
+  document.getElementById('modal-confirm-hist').classList.remove('open');
+  const tarjetaId = window._pendingTarjetaId;
+  const corte = window._pendingCorte;
+  const periodoFin = window._pendingPeriodoFin;
+  const tResumen = (perfil?.tarjetas||[]).find(x=>x.id===tarjetaId);
+
+  // Ocultar todos los selectores y leyenda
+  ['paso-banco-hist','paso-apodo','paso-anio','paso-corte'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+  const leyenda = document.getElementById('leyenda-historial');
+  if(leyenda) leyenda.style.display='none';
+
+  // Mostrar resumen
+  document.getElementById('resumen-banco').textContent = document.getElementById('banco-seleccionado-txt').textContent;
+  document.getElementById('resumen-tarjeta').textContent = tResumen?.apodo||tResumen?.nombre||'—';
+  document.getElementById('resumen-anio').textContent = document.getElementById('anio-seleccionado-txt').textContent;
+  document.getElementById('resumen-corte').textContent = document.getElementById('corte-seleccionado-txt').textContent;
+  document.getElementById('resumen-seleccion').style.display = 'block';
+  document.getElementById('btn-nueva-busqueda').style.display = 'flex';
+
+  // Bloquear recuadros
+  ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.parentElement && el.parentElement.parentElement){
+      el.parentElement.parentElement.style.pointerEvents = 'none';
+      el.parentElement.parentElement.style.opacity = '0.75';
+    }
+  });
+
+  // Mostrar movimientos
+  const data = movsPorCorte(tarjetaId, corte, periodoFin);
+  const rec = document.getElementById('recuadro-movimientos');
+  rec.style.display = 'block';
+
+  // Promociones vigentes
+  const promosVigentes = promocionesCache.filter(p=>{
+    if(p.tarjetaId !== tarjetaId) return false;
+    const tPV = (perfil?.tarjetas||[]).find(x=>x.id===p.tarjetaId);
+    const cPV = tPV ? tPV.corte : 1;
+    const mesPagoEnCorte = getMesPagoPromo(cPV, p.creadoEn, periodoFin);
+    if(p.mesesPagados !== undefined){
+      return mesPagoEnCorte >= 1 && mesPagoEnCorte <= p.mesesPagados && p.mesesPagados <= p.meses;
+    }
+    return mesPagoEnCorte >= 1 && mesPagoEnCorte <= p.meses;
+  });
+  const recPromos = document.getElementById('recuadro-promos-historial');
+  if(promosVigentes.length){
+    const finFmt = periodoFin.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+    window._promosHistorialVigentes = promosVigentes;
+    window._promosHistorialFecha = finFmt;
+    window._promosHistorialPeriodoFin = periodoFin;
+    recPromos.style.display = 'block';
+  } else {
+    recPromos.style.display = 'none';
+    window._promosHistorialVigentes = [];
+  }
+
+  // Renderizar movimientos
+  const el = document.getElementById('movimientos-full');
+  el.innerHTML = '';
+  if(!data.length){
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:#bbb;font-size:14px">Sin movimientos en este corte</div>';
+    return;
+  }
+  el.innerHTML = data.map(m=>`
+    <div class="mov-item" onclick="resaltarMov(this)" onmousedown="startLongPress(this)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()" ontouchstart="startLongPress(this)" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()" data-id="${m.id}">
+      <div class="mov-icon"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></div>
+      <div class="mov-info">
+        <div class="mov-date">${fmtDateShort(m.fecha, m.creadoEn)}</div>
+      </div>
+      <div class="mov-amount">-${fmt(m.monto)}</div>
+      <button class="edit-btn" onclick="event.stopPropagation();openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      <button class="del-btn2" onclick="event.stopPropagation();eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+    </div>`).join('');
+}
+
+window.cancelarBusquedaHistorial = function(){
+  document.getElementById('modal-confirm-hist').classList.remove('open');
+  // Reabrir el dropdown de corte para que pueda cambiar
+  document.getElementById('dd-cortes').style.display = 'block';
+  document.getElementById('dd-cortes-icon').style.transform = 'rotate(180deg)';
+}
+
+window.cancelarConfirmHist = function(){
+  document.getElementById('modal-confirm-hist').classList.remove('open');
+  resetHistorial();
+  cargarBancosFiltro();
+}
+
+window.aceptarConfirmHist = function(){
+  document.getElementById('modal-confirm-hist').classList.remove('open');
+  const tarjetaId = window._pendingTarjetaId;
+  const corte = window._pendingCorte;
+  const periodoFin = window._pendingPeriodoFin;
+  if(!tarjetaId || !corte || !periodoFin) return;
+
+  // Ocultar selectores
+  ['paso-banco-hist','paso-apodo','paso-anio','paso-corte'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+  const leyenda = document.getElementById('leyenda-historial');
+  if(leyenda) leyenda.style.display='none';
+
+  // Mostrar resumen
+  const tResumen = (perfil?.tarjetas||[]).find(x=>x.id===tarjetaId);
+  document.getElementById('resumen-banco').textContent = document.getElementById('banco-seleccionado-txt').textContent;
+  document.getElementById('resumen-tarjeta').textContent = tResumen?.apodo||tResumen?.nombre||'—';
+  document.getElementById('resumen-anio').textContent = document.getElementById('anio-seleccionado-txt').textContent;
+  document.getElementById('resumen-corte').textContent = document.getElementById('corte-seleccionado-txt').textContent;
+  document.getElementById('resumen-seleccion').style.display = 'block';
+  document.getElementById('btn-nueva-busqueda').style.display = 'flex';
+
+  // Bloquear recuadros
+  ['banco-seleccionado-txt','tarjeta-seleccionada-txt','anio-seleccionado-txt','corte-seleccionado-txt'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.parentElement && el.parentElement.parentElement){
+      el.parentElement.parentElement.style.pointerEvents = 'none';
+      el.parentElement.parentElement.style.opacity = '0.75';
+    }
+  });
+
+  // Mostrar movimientos
+  const data = movsPorCorte(tarjetaId, corte, periodoFin);
+  const rec = document.getElementById('recuadro-movimientos');
+  rec.style.display = 'block';
+  // Mostrar promociones vigentes de esta tarjeta en este corte
+  const promosVigentes = promocionesCache.filter(p=>{
+    if(p.tarjetaId !== tarjetaId) return false;
+    const tPV = (perfil?.tarjetas||[]).find(x=>x.id===p.tarjetaId);
+    const cPV = tPV ? tPV.corte : 1;
+    const mesPagoEnCorte = getMesPagoPromo(cPV, p.creadoEn, periodoFin);
+    if(p.mesesPagados !== undefined){
+      // Mostrar en este corte si el pago de este corte YA fue realizado
+      // y es un pago válido (dentro del total de meses)
+      // mesPagoEnCorte = número de cobro que corresponde a este corte
+      // Aparece si: el cobro de este corte fue pagado (mesPagoEnCorte <= mesesPagados)
+      // y es un cobro válido (mesPagoEnCorte >= 1 y mesesPagados <= meses)
+      return mesPagoEnCorte >= 1 && mesPagoEnCorte <= p.mesesPagados && p.mesesPagados <= p.meses;
+    }
+    return mesPagoEnCorte >= 1 && mesPagoEnCorte <= p.meses;
+  });
+  const recPromos = document.getElementById('recuadro-promos-historial');
+  if(promosVigentes.length){
+    const finFmt = periodoFin.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+    window._promosHistorialVigentes = promosVigentes;
+    window._promosHistorialFecha = finFmt;
+    window._promosHistorialPeriodoFin = periodoFin;
+    recPromos.style.display = 'block';
+  } else {
+    recPromos.style.display = 'none';
+    window._promosHistorialVigentes = [];
+  }
+  // Ocultar todos los selectores al mostrar resultados
+  const selectorIds = ['dd-bancos','paso-apodo','paso-anio','paso-corte'];
+  selectorIds.forEach(id=>{
+    const el = document.getElementById(id+'_wrapper') || document.getElementById(id);
+    // Ocultar el recuadro padre de cada selector
+  });
+  // Ocultar recuadros completos
+  const bancoRecuadro = document.getElementById('banco-seleccionado-txt')?.closest('[style*="background:linear-gradient"]');
+  document.querySelectorAll('#screen-movimientos > div > [style*="background:linear-gradient"]').forEach(el=>{
+    el.style.display = 'none';
+  });
+  document.getElementById('paso-apodo').style.display = 'none';
+  document.getElementById('paso-anio').style.display = 'none';
+  document.getElementById('paso-corte').style.display = 'none';
+  // Callback ligero: solo actualiza el contenido sin tocar dropdowns
+  const renderCorte = ()=>{
+    const d = movsPorCorte(tarjetaId, corte, periodoFin);
+    const elMov = document.getElementById('movimientos-full');
+    if(!elMov) return;
+    if(!d.length){ elMov.innerHTML='<div class="empty-mov">Sin movimientos en este corte</div>'; return; }
+    elMov.innerHTML = d.map(m=>`
+      <div class="mov-item">
+        <div class="mov-icon"><svg width="16" height="16" fill="none" stroke="#111" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg></div>
+        <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
+        <div class="mov-amount">-${fmt(m.monto)}</div>
+        <div class="mov-actions">
+          <button class="edit-btn" onclick="event.stopPropagation();openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="del-btn2" onclick="event.stopPropagation();eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+        </div>
+      </div>`).join('');
+  };
+  onAfterEdit = renderCorte;
+  const el = document.getElementById('movimientos-full');
+  if(!data.length){
+    el.innerHTML = '<div class="empty-mov">Sin movimientos en este corte</div>';
+    return;
+  }
+  el.innerHTML = data.map(m=>`
+    <div class="mov-item" onclick="resaltarMov(this)" onmousedown="startLongPress(this)" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()" ontouchstart="startLongPress(this)" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()" data-id="${m.id}">
+      <div class="mov-icon"><svg width="16" height="16" fill="none" stroke="#111" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg></div>
+      <div class="mov-info"><div class="mov-date">${fmtDateShort(m.fecha,m.creadoEn)}</div></div>
+      <div class="mov-amount">-${fmt(m.monto)}</div>
+      <div class="mov-actions">
+        <button class="edit-btn" onclick="event.stopPropagation();openEdit('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="del-btn2" onclick="event.stopPropagation();eliminar('${m.id}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+      </div>
+    </div>`).join('');
+}
+
 
 window.setNavActive = function(id){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -3752,6 +3947,36 @@ window.confirmarEliminarPerfil = async function(){
   <div class="modal">
     <div class="modal-handle"></div>
     <div id="detalle-gasto-content"></div>
+  </div>
+</div>
+
+<!-- Modal confirmar búsqueda historial -->
+<div class="modal-overlay" id="modal-confirm-hist" style="align-items:center">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:700;color:#111;margin-bottom:16px">¿Confirmar búsqueda?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div style="background:#f5f5f5;border-radius:12px;padding:12px">
+        <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Banco</div>
+        <div style="font-size:14px;font-weight:700;color:#111" id="confirm-hist-banco">—</div>
+      </div>
+      <div style="background:#f5f5f5;border-radius:12px;padding:12px">
+        <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Tarjeta</div>
+        <div style="font-size:14px;font-weight:700;color:#111" id="confirm-hist-tarjeta">—</div>
+      </div>
+      <div style="background:#f5f5f5;border-radius:12px;padding:12px">
+        <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Año</div>
+        <div style="font-size:14px;font-weight:700;color:#111" id="confirm-hist-anio">—</div>
+      </div>
+      <div style="background:#f5f5f5;border-radius:12px;padding:12px">
+        <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Corte</div>
+        <div style="font-size:14px;font-weight:700;color:#111" id="confirm-hist-corte">—</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="cancelarConfirmHist()" style="padding:13px;border-radius:12px;border:1.5px solid #e0e0e0;background:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;color:#111">Cancelar</button>
+      <button onclick="aceptarConfirmHist()" style="padding:13px;border-radius:12px;background:linear-gradient(180deg,#111,#444);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Aceptar</button>
+    </div>
   </div>
 </div>
 
