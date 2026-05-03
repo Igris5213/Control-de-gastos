@@ -1056,17 +1056,24 @@ function updateCards(){
   if(!perfil || !perfil.tarjetas) return;
   perfil.tarjetas.forEach((t,i)=>{
     const {inicio,fin,dias} = getPeriodo(t.corte);
+    // finRaw = fecha exacta del corte (sin ajuste día hábil) para cálculo de promos
+    const today2 = new Date();
+    const y2=today2.getFullYear(), m2=today2.getMonth(), corte2=t.corte;
+    let finRawPromo;
+    if(today2.getDate()<=corte2){
+      finRawPromo=new Date(y2,m2,corte2);
+    } else {
+      const nm=m2===11?0:m2+1, ny=m2===11?y2+1:y2;
+      finRawPromo=new Date(ny,nm,corte2);
+    }
     // Movimientos del corte
     const usadoMovs = movimientos.filter(m=>m.tarjetaId===t.id&&new Date(m.fecha+'T12:00:00')>=inicio&&new Date(m.fecha+'T12:00:00')<=fin).reduce((s,m)=>s+m.monto,0);
     // Mensualidades activas de promociones de esta tarjeta
     const mensualidadesPromo = promocionesCache
       .filter(p=>p.tarjetaId===t.id)
       .filter(p=>{
-        const tP = perfil?.tarjetas?.find(x=>x.id===p.tarjetaId);
-        const cP = tP ? tP.corte : 1;
-        const mesPagoFin = getMesPagoPromo(cP, p.creadoEn, fin);
+        const mesPagoFin = getMesPagoPromo(t.corte, p.creadoEn, finRawPromo);
         if(p.mesesPagados !== undefined){
-          // Aparece si este corte tiene cobro pendiente después de los ya pagados
           return mesPagoFin > p.mesesPagados && mesPagoFin <= p.meses;
         }
         return mesPagoFin >= 1 && mesPagoFin <= p.meses;
@@ -1084,14 +1091,12 @@ function updateCards(){
     const pctEl=document.getElementById(`pct-${i}`);
     if(usadoEl) usadoEl.textContent=fmt(usado);
     if(dispEl) dispEl.textContent = sobregiro ? `Sobregiro: ${fmt(exceso)}` : fmt(disp);
-    // Importe + Meses: gastos del corte + mensualidades activas en ESTE corte
+    // Importe + Meses: gastos del corte + mensualidades de promos activas
     const usadoMovsSolo = movimientos.filter(m=>m.tarjetaId===t.id&&new Date(m.fecha+'T12:00:00')>=inicio&&new Date(m.fecha+'T12:00:00')<=fin).reduce((s,m)=>s+m.monto,0);
-    // Solo sumar mensualidades cuyo cobro cae en el corte actual
-    const msiTotal = promocionesCache.filter(p=>p.tarjetaId===t.id).filter(p=>{
-      if(p.mesesPagados >= p.meses) return false; // liquidada
-      // Calcular si este corte (fin) es un cobro de la promo
-      return promoCobraEnCorte(p, t.corte, fin);
-    }).reduce((s,p)=>s+p.mensualidad,0);
+    const msiTotal = promocionesCache
+      .filter(p=>p.tarjetaId===t.id)
+      .filter(p=>(p.mesesPagados||0) < p.meses)
+      .reduce((s,p)=>s+p.mensualidad, 0);
     const totalMsiEl = document.getElementById(`total-con-msi-${i}`);
     if(totalMsiEl) totalMsiEl.textContent = fmt(usadoMovsSolo + msiTotal);
     if(barEl){
