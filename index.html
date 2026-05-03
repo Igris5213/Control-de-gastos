@@ -848,11 +848,12 @@ window.selectCorteOb = function(el, dia){
 
 window.agregarTarjetaOb = function(){
   const nombreInput = document.getElementById('inp-banco-ob').value.trim();
-  const nombre = selectedBancoNombre || nombreInput;
-  const corte  = selectedCorte;
+  const nombre = nombreInput || selectedBancoNombre;
+  const corteInput = parseInt(document.getElementById('inp-corte-ob').value);
+  const corte = corteInput || selectedCorte;
   const limite = parseFloat(document.getElementById('inp-limite-ob').value);
-  if(!nombre){ showToast('Selecciona o escribe un banco'); return; }
-  if(!corte||corte<1||corte>31){ showToast('Selecciona o escribe la fecha de corte'); return; }
+  if(!nombre){ showToast('Selecciona un banco'); return; }
+  if(!corte||corte<1||corte>31){ showToast('Selecciona la fecha de corte'); return; }
   if(!limite||limite<=0){ document.getElementById('inp-limite-ob').focus(); return; }
 
   const apodo = document.getElementById('inp-apodo-ob').value.trim();
