@@ -1015,6 +1015,19 @@ function diaHabilAnterior(fecha){
   return d;
 }
 
+function getMesPagoPromo(corte, creadoEn, periodoFin){
+  const fechaCreacion = new Date(creadoEn);
+  let primerCorte = new Date(fechaCreacion.getFullYear(), fechaCreacion.getMonth(), corte);
+  if(primerCorte <= fechaCreacion){
+    primerCorte = new Date(fechaCreacion.getFullYear(), fechaCreacion.getMonth()+1, corte);
+  }
+  const mesesDesde = Math.round(
+    (periodoFin.getFullYear() - primerCorte.getFullYear()) * 12 +
+    (periodoFin.getMonth() - primerCorte.getMonth())
+  );
+  return mesesDesde + 1;
+}
+
 function getPeriodo(corte, ref=today){
   const r = ref instanceof Date ? ref : today;
   const d=r.getDate(), m=r.getMonth(), y=r.getFullYear();
@@ -1051,9 +1064,12 @@ function updateCards(){
       .filter(p=>{
         const tP = perfil?.tarjetas?.find(x=>x.id===p.tarjetaId);
         const cP = tP ? tP.corte : 1;
-        const mPag = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, Math.max(0, getMesPagoPromo(cP, p.creadoEn, fin)));
-        // Aparece si aún quedan pagos por hacer (mesesPagados < meses)
-        return mPag < p.meses;
+        const mesPagoFin = getMesPagoPromo(cP, p.creadoEn, fin);
+        if(p.mesesPagados !== undefined){
+          // Aparece si este corte tiene cobro pendiente después de los ya pagados
+          return mesPagoFin > p.mesesPagados && mesPagoFin <= p.meses;
+        }
+        return mesPagoFin >= 1 && mesPagoFin <= p.meses;
       })
       .reduce((s,p)=>s+p.mensualidad, 0);
     const usado = usadoMovs; // Solo gastos del corte actual
@@ -1996,14 +2012,25 @@ window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
   // Mostrar promociones vigentes de esta tarjeta en este corte
   const promosVigentes = promocionesCache.filter(p=>{
     if(p.tarjetaId !== tarjetaId) return false;
-    const mPag = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, 1+Math.floor((Date.now()-p.creadoEn)/(1000*60*60*24*30)));
-    return mPag < p.meses; // solo activas
+    const tPV = (perfil?.tarjetas||[]).find(x=>x.id===p.tarjetaId);
+    const cPV = tPV ? tPV.corte : 1;
+    const mesPagoEnCorte = getMesPagoPromo(cPV, p.creadoEn, periodoFin);
+    if(p.mesesPagados !== undefined){
+      // Mostrar en este corte si el pago de este corte YA fue realizado
+      // y es un pago válido (dentro del total de meses)
+      // mesPagoEnCorte = número de cobro que corresponde a este corte
+      // Aparece si: el cobro de este corte fue pagado (mesPagoEnCorte <= mesesPagados)
+      // y es un cobro válido (mesPagoEnCorte >= 1 y mesesPagados <= meses)
+      return mesPagoEnCorte >= 1 && mesPagoEnCorte <= p.mesesPagados && p.mesesPagados <= p.meses;
+    }
+    return mesPagoEnCorte >= 1 && mesPagoEnCorte <= p.meses;
   });
   const recPromos = document.getElementById('recuadro-promos-historial');
   if(promosVigentes.length){
     const finFmt = periodoFin.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
     window._promosHistorialVigentes = promosVigentes;
     window._promosHistorialFecha = finFmt;
+    window._promosHistorialPeriodoFin = periodoFin;
     recPromos.style.display = 'block';
   } else {
     recPromos.style.display = 'none';
@@ -2335,7 +2362,12 @@ async function renderPromociones(){
       html += '</div>';
       html += '<div id="' + bancoId + '" style="display:none;padding:0 12px 12px">';
       grupoPromos.forEach(function(p){
-        var mesesTranscurridos = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, 1 + Math.floor((Date.now() - p.creadoEn) / (1000*60*60*24*30)));
+        var tarjetaPromo = (perfil?.tarjetas||[]).find(function(t){ return t.id===p.tarjetaId; });
+        var cortePromo = tarjetaPromo ? tarjetaPromo.corte : 1;
+        var mesesCalculados = getMesPagoPromo(cortePromo, p.creadoEn, new Date());
+        var mesesTranscurridos = p.mesesPagados !== undefined
+          ? p.mesesPagados
+          : Math.min(p.meses, Math.max(0, mesesCalculados));
         var pct = Math.round((mesesTranscurridos/p.meses)*100);
         var liquidado = mesesTranscurridos >= p.meses;
         html += '<div style="background:#f8f8f8;border-radius:12px;padding:14px;margin-bottom:8px">';
@@ -2377,7 +2409,7 @@ async function renderPromociones(){
         header.style.borderBottom = abierto ? 'none' : '1px solid #f0f0f0';
       });
     });
-  }catch(e){ lista.innerHTML = '<div style="text-align:center;color:#bbb;padding:24px">Error al cargar</div>'; }
+  }catch(err){ console.error('renderPromociones error:', err); lista.innerHTML = '<div style="text-align:center;color:#bbb;padding:24px">Error al cargar</div>'; }
 }
 
 
@@ -2627,17 +2659,32 @@ window.verPromo = async function(id){
 window.abrirModalPromosHistorial = function(){
   const promos = window._promosHistorialVigentes || [];
   const fecha = window._promosHistorialFecha || '';
+  const periodoFin = window._promosHistorialPeriodoFin || new Date();
   const lista = document.getElementById('modal-promos-historial-lista');
-  lista.innerHTML = promos.map(p=>
-    '<div style="background:#f5f5f5;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
-    + '<div>'
-    + '<div style="font-size:14px;font-weight:700;color:#111">' + (p.comercio||p.nombre) + '</div>'
-    + '<div style="font-size:13px;color:#555;margin-top:2px">' + p.nombre + '</div>'
-    + '<div style="font-size:11px;color:#aaa;margin-top:4px">Corte: ' + fecha + '</div>'
-    + '</div>'
-    + '<div style="font-size:15px;font-weight:700;color:#111;white-space:nowrap;margin-left:12px">-' + fmt(p.mensualidad) + '</div>'
-    + '</div>'
-  ).join('');
+  lista.innerHTML = promos.map(p=>{
+    const tPV = (perfil?.tarjetas||[]).find(x=>x.id===p.tarjetaId);
+    const cPV = tPV ? tPV.corte : 1;
+    const pagoActual = getMesPagoPromo(cPV, p.creadoEn, periodoFin);
+    const pagosMostrar = p.mesesPagados !== undefined ? p.mesesPagados : pagoActual;
+    const faltan = p.meses - pagosMostrar;
+    const esUltimo = faltan === 0;
+    return '<div style="background:#f5f5f5;border-radius:12px;padding:14px;margin-bottom:8px">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
+      + '<div>'
+      + '<div style="font-size:14px;font-weight:700;color:#111">' + (p.comercio||p.nombre) + '</div>'
+      + '<div style="font-size:13px;color:#555;margin-top:2px">' + p.nombre + '</div>'
+      + '</div>'
+      + '<div style="font-size:16px;font-weight:700;color:#111;white-space:nowrap;margin-left:12px">-' + fmt(p.mensualidad) + '</div>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between">'
+      + '<div style="font-size:12px;color:#888">Pago <strong style="color:#111">' + pagosMostrar + '</strong> de ' + p.meses + '</div>'
+      + (esUltimo
+        ? '<div style="background:#111;color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px">✓ Último pago</div>'
+        : '<div style="font-size:12px;color:#aaa">Faltan <strong style="color:#111">' + faltan + '</strong> ' + (faltan===1?'pago':'pagos') + '</div>'
+      )
+      + '</div>'
+      + '</div>';
+  }).join('');
   document.getElementById('modal-promos-historial').classList.add('open');
 }
 
