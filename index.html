@@ -1894,16 +1894,25 @@ window.seleccionarBancoMov = function(nombre){
   document.getElementById('dd-cortes').style.display = 'none';
   const btnBusq = document.getElementById('btn-nueva-busqueda');
   if(btnBusq) btnBusq.style.display = 'none';
-  // Mostrar selector de tarjeta
+  // Mostrar selector de tarjeta y abrirlo automáticamente
   const tarjetas = perfil.tarjetas.filter(t=>t.nombre===nombre);
   const pasoApodo = document.getElementById('paso-apodo');
   pasoApodo.style.display = 'block';
   document.getElementById('lista-apodos-btns').innerHTML = tarjetas.map(t=>`
     <div data-id="${t.id}" onclick="seleccionarApodoMov('${t.id}','${(t.apodo||t.nombre).replace(/'/g,"\'")}','${t.corte}')"
-      style="padding:14px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#fff;color:#111;font-weight:500;font-size:14px">
+      style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.15);cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#1e1e1e;color:#fff;font-weight:500;font-size:14px">
       <span>${t.apodo||'Sin apodo'}</span>
-      <span style="color:#aaa;font-size:12px">Corte día ${t.corte}</span>
+      <span style="color:rgba(255,255,255,0.5);font-size:12px">Corte día ${t.corte}</span>
     </div>`).join('');
+  // Si solo hay una tarjeta, seleccionarla automáticamente
+  if(tarjetas.length === 1){
+    const t = tarjetas[0];
+    seleccionarApodoMov(t.id, t.apodo||t.nombre, t.corte);
+  } else {
+    // Abrir dropdown automáticamente
+    document.getElementById('dd-tarjetas').style.display = 'block';
+    document.getElementById('dd-tarjetas-icon').style.transform = 'rotate(180deg)';
+  }
 }
 
 window.seleccionarApodoMov = function(tarjetaId, apodo, corte){
@@ -1934,13 +1943,21 @@ window.seleccionarApodoMov = function(tarjetaId, apodo, corte){
 
   if(!anios.length){
     document.getElementById('lista-anios-btns').innerHTML = '<div style="padding:14px 16px;color:#aaa;font-size:14px">Sin movimientos registrados</div>';
+    document.getElementById('dd-anios').style.display = 'block';
+    document.getElementById('dd-anios-icon').style.transform = 'rotate(180deg)';
+  } else if(anios.length === 1){
+    // Solo un año, seleccionarlo automáticamente
+    seleccionarAnioMov(anios[0]);
   } else {
     document.getElementById('lista-anios-btns').innerHTML = anios.map(a=>`
       <div data-anio="${a}" onclick="seleccionarAnioMov(${a})"
-        style="padding:14px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#fff;color:#111;font-weight:500;font-size:14px">
+        style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.15);cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#1e1e1e;color:#fff;font-weight:500;font-size:14px">
         <span>${a}</span>
-        <svg width="16" height="16" fill="none" stroke="#aaa" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </div>`).join('');
+    // Abrir dropdown automáticamente
+    document.getElementById('dd-anios').style.display = 'block';
+    document.getElementById('dd-anios-icon').style.transform = 'rotate(180deg)';
   }
   toggleDropdown('dd-anios');
 }
@@ -1952,8 +1969,8 @@ window.seleccionarAnioMov = function(anio){
   // Resaltar año seleccionado
   document.querySelectorAll('#lista-anios-btns div').forEach(b=>{
     const sel = parseInt(b.dataset.anio)===anio;
-    b.style.background = sel ? '#ecfdf5' : '#fff';
-    b.style.color = sel ? '#065f46' : '#111';
+    b.style.background = sel ? '#111' : '#1e1e1e';
+    b.style.color = sel ? '#fff' : 'rgba(255,255,255,0.8)';
     b.style.fontWeight = sel ? '700' : '500';
   });
   document.getElementById('anio-seleccionado-txt').textContent = anio;
@@ -1974,11 +1991,17 @@ window.seleccionarAnioMov = function(anio){
 
   document.getElementById('lista-cortes-btns').innerHTML = cortes.map(c=>`
     <div data-key="${c.key}" onclick="seleccionarCorteMov('${tarjetaId}',${corte},'${c.key}')"
-      style="padding:14px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#fff;color:#111;font-weight:500;font-size:14px">
+      style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.15);cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#1e1e1e;color:#fff;font-weight:500;font-size:14px">
       <span style="text-transform:capitalize">${c.nombre}</span>
-      <svg width="16" height="16" fill="none" stroke="#aaa" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
     </div>`).join('');
-  toggleDropdown('dd-cortes');
+  // Si solo hay un corte, seleccionarlo automáticamente
+  if(cortes.length === 1){
+    seleccionarCorteMov(tarjetaId, corte, cortes[0].key);
+  } else {
+    document.getElementById('dd-cortes').style.display = 'block';
+    document.getElementById('dd-cortes-icon').style.transform = 'rotate(180deg)';
+  }
 }
 
 window.seleccionarCorteMov = function(tarjetaId, corte, periodoFinKey){
