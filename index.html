@@ -767,6 +767,8 @@ window.toggleScrollBancoOb = function(){
       document.getElementById('banco-ob-txt').textContent = banco;
       document.getElementById('banco-ob-txt').style.color = '#111';
       document.getElementById('inp-banco-ob-otro').style.display = 'none';
+      // Cerrar scroll al seleccionar
+      setTimeout(()=>{ document.getElementById('banco-ob-scroll-wrap').style.display = 'none'; }, 300);
     });
   }
 }
@@ -802,6 +804,8 @@ window.toggleScrollCorteOb = function(){
       document.getElementById('inp-corte-ob').value = dia;
       document.getElementById('corte-ob-txt').textContent = 'Día ' + dia;
       document.getElementById('corte-ob-txt').style.color = '#111';
+      // Cerrar scroll al seleccionar
+      setTimeout(()=>{ document.getElementById('corte-ob-scroll-wrap').style.display = 'none'; }, 300);
     });
   }
 }
