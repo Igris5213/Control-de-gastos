@@ -654,6 +654,7 @@ window.guardarPerfil = function(){
   const nombre = document.getElementById('inp-nombre').value.trim();
   if(!nombre){ document.getElementById('inp-nombre').focus(); return; }
   perfil = { nombre, tarjetas: [] };
+  promocionesCache = []; // limpiar promociones del perfil anterior
   showScreen('screen-tarjetas');
 }
 
@@ -854,7 +855,8 @@ async function iniciarApp(){
     movimientos = snap.docs.map(d=>({id:d.id,...d.data()}));
     // Cargar promociones para el cálculo de mensualidades
     getDocs(query(collection(db,'promociones'))).then(ps=>{
-      promocionesCache = ps.docs.map(d=>({id:d.id,...d.data()}));
+      const tarjetaIdsAct = (perfil?.tarjetas||[]).map(t=>t.id);
+      promocionesCache = ps.docs.map(d=>({id:d.id,...d.data()})).filter(p=>tarjetaIdsAct.includes(p.tarjetaId));
       updateCards();
     }).catch(()=>updateCards());
     renderMovimientos();
@@ -2369,7 +2371,10 @@ async function renderPromociones(){
   if(!lista) return;
   try{
     const snap = await getDocs(query(collection(db,'promociones'), orderBy('creadoEn','desc')));
-    const promos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const todosPromos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    // Filtrar solo las promociones de las tarjetas del perfil actual
+    const tarjetaIds = (perfil?.tarjetas||[]).map(t=>t.id);
+    const promos = todosPromos.filter(p=>tarjetaIds.includes(p.tarjetaId));
     promocionesCache = promos; // actualizar cache
     updateCards(); // recalcular usados con mensualidades
     if(!promos.length){
