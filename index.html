@@ -865,15 +865,6 @@ window.agregarTarjetaOb = function(){
   // Reset
   selectedBancoNombre = '';
   selectedCorte = null;
-  document.querySelectorAll('.banco-check').forEach(c=>{ c.classList.remove('checked'); c.textContent=''; });
-  document.querySelectorAll('.banco-popup-item').forEach(i=>i.classList.remove('active'));
-  document.getElementById('banco-selector-btn').classList.remove('selected');
-  document.getElementById('banco-selector-txt').textContent = 'Seleccionar banco...';
-  document.querySelectorAll('#corte-popup-overlay .banco-check').forEach(c=>{ c.classList.remove('checked'); c.textContent=''; });
-  document.querySelectorAll('#corte-popup-overlay .banco-popup-item').forEach(i=>i.classList.remove('active'));
-  document.getElementById('corte-selector-btn').classList.remove('selected');
-  document.getElementById('corte-selector-txt').textContent = 'Seleccionar día...';
-  // Limpiar form para poder agregar otra
   resetFormTarjeta();
   // Mostrar/ocultar Terminar según cuántas tarjetas haya
   if(tarjetasOb.length >= 1){
@@ -923,14 +914,6 @@ function resetFormTarjeta(){
   document.getElementById('corte-ob-txt').textContent = 'Seleccionar día...';
   document.getElementById('corte-ob-txt').style.color = '#999';
   document.getElementById('corte-ob-scroll-wrap').style.display = 'none';
-  document.getElementById('banco-selector-btn').classList.remove('selected');
-  document.getElementById('banco-selector-txt').textContent = 'Seleccionar banco...';
-  document.querySelectorAll('#banco-popup-overlay .banco-check').forEach(c=>{ c.classList.remove('checked'); c.textContent=''; });
-  document.querySelectorAll('#banco-popup-overlay .banco-popup-item').forEach(i=>i.classList.remove('active'));
-  document.getElementById('corte-selector-btn').classList.remove('selected');
-  document.getElementById('corte-selector-txt').textContent = 'Seleccionar día...';
-  document.querySelectorAll('#corte-popup-overlay .banco-check').forEach(c=>{ c.classList.remove('checked'); c.textContent=''; });
-  document.querySelectorAll('#corte-popup-overlay .banco-popup-item').forEach(i=>i.classList.remove('active'));
   selectedBancoNombre = '';
   selectedCorte = null;
 }
