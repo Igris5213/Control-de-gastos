@@ -330,25 +330,60 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="added-cards" id="added-cards-list"></div>
 
     <div id="form-tarjeta">
+      <!-- 1. Banco -->
       <div class="ob-field">
-        <div class="ob-label">Banco o tarjeta</div>
-        <button class="banco-selector-btn" id="banco-selector-btn" onclick="abrirPopupBanco()">
-          <span id="banco-selector-txt">Seleccionar banco...</span>
+        <div class="ob-label">Banco</div>
+        <div onclick="toggleScrollBancoOb()" id="banco-ob-display"
+          style="padding:12px 14px;border-radius:12px;border:1.5px solid #e0e0e0;font-size:15px;cursor:pointer;color:#999;display:flex;justify-content:space-between;align-items:center;background:#fff">
+          <span id="banco-ob-txt">Seleccionar banco...</span>
           <span style="color:#aaa;font-size:12px">▾</span>
-        </button>
-        <input class="ob-input" id="inp-banco-ob" placeholder="Nombre del banco..." maxlength="20" style="display:none;margin-top:10px" />
+        </div>
+        <input type="hidden" id="inp-banco-ob" />
+        <!-- Scroll de bancos -->
+        <div id="banco-ob-scroll-wrap" style="display:none;margin-top:6px;background:#f5f5f5;border-radius:14px;overflow:hidden;position:relative">
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-align:center;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Desliza para seleccionar</div>
+          <div style="position:relative;height:132px;margin:0 8px">
+            <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
+            <div id="scroll-banco-ob" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+              <div style="height:44px"></div>
+              <div id="scroll-banco-ob-items" style="width:100%"></div>
+              <div style="height:44px"></div>
+            </div>
+          </div>
+          <div style="height:8px"></div>
+        </div>
+        <!-- Campo "Otro" banco -->
+        <input class="ob-input" id="inp-banco-ob-otro" placeholder="Nombre del banco..." maxlength="20" style="display:none;margin-top:8px" />
       </div>
+      <!-- 2. Tarjeta -->
+      <div class="ob-field">
+        <div class="ob-label">Tarjeta <span style="font-weight:400;color:#aaa">(opcional)</span></div>
+        <input class="ob-input" id="inp-apodo-ob" placeholder="Ej. Personal, Nómina, Débito..." maxlength="30" />
+      </div>
+      <!-- 3. Fecha de corte - scroll -->
       <div class="ob-field">
         <div class="ob-label">Fecha de corte</div>
-        <button class="banco-selector-btn" id="corte-selector-btn" onclick="abrirPopupCorte()">
-          <span id="corte-selector-txt">Seleccionar día...</span>
+        <div onclick="toggleScrollCorteOb()" id="corte-ob-display"
+          style="padding:12px 14px;border-radius:12px;border:1.5px solid #e0e0e0;font-size:15px;cursor:pointer;color:#999;display:flex;justify-content:space-between;align-items:center;background:#fff">
+          <span id="corte-ob-txt">Seleccionar día...</span>
           <span style="color:#aaa;font-size:12px">▾</span>
-        </button>
+        </div>
+        <input type="hidden" id="inp-corte-ob" />
+        <!-- Scroll de días -->
+        <div id="corte-ob-scroll-wrap" style="display:none;margin-top:6px;background:#f5f5f5;border-radius:14px;overflow:hidden;position:relative">
+          <div style="font-size:10px;font-weight:700;color:#aaa;text-align:center;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 4px">Desliza para seleccionar</div>
+          <div style="position:relative;height:132px;margin:0 8px">
+            <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:44px;border-radius:10px;background:linear-gradient(180deg,#111,#444);pointer-events:none;z-index:1"></div>
+            <div id="scroll-corte-ob" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;z-index:2">
+              <div style="height:44px"></div>
+              <div id="scroll-corte-ob-items" style="width:100%"></div>
+              <div style="height:44px"></div>
+            </div>
+          </div>
+          <div style="height:8px"></div>
+        </div>
       </div>
-      <div class="ob-field">
-        <div class="ob-label">Tarjeta <span style="font-weight:400;color:#aaa">(opcional, para identificarla)</span></div>
-        <input class="ob-input" id="inp-apodo-ob" placeholder="Ej. Tarjeta personal, Nómina, Débito..." maxlength="30" />
-      </div>
+      <!-- 4. Límite -->
       <div class="ob-field">
         <div class="ob-label">Límite de gasto</div>
         <div class="ob-prefix-wrap">
@@ -698,6 +733,79 @@ window.abrirPopupCorte = function(){
   document.getElementById('corte-popup-overlay').classList.add('open');
 }
 
+const BANCOS_OB = ['BBVA', 'Banorte', 'Citibanamex', 'Santander', 'HSBC', 'Scotiabank', 'Invex', 'Banamex'];
+
+window.toggleScrollBancoOb = function(){
+  const wrap = document.getElementById('banco-ob-scroll-wrap');
+  const isOpen = wrap.style.display === 'block';
+  // Cerrar scroll de corte si está abierto
+  document.getElementById('corte-ob-scroll-wrap').style.display = 'none';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    const currentBanco = document.getElementById('inp-banco-ob').value || '';
+    const currentIdx = BANCOS_OB.indexOf(currentBanco);
+    const cont = document.getElementById('scroll-banco-ob-items');
+    const scrollEl = document.getElementById('scroll-banco-ob');
+    cont.innerHTML = BANCOS_OB.map(function(b,i){ return '<div class="scroll-item'+(i===currentIdx?' sel':'')+' " data-n="'+i+'" style="'+(i===currentIdx?'color:#fff;':'')+'">'+b+'</div>'; }).join('');
+    setTimeout(()=>{
+      const idx = currentIdx >= 0 ? currentIdx : 0;
+      scrollEl.scrollTop = idx*44;
+      cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+        const sel = i===idx;
+        el.classList.toggle('sel', sel);
+        el.style.color = sel ? '#fff' : '';
+      });
+    }, 50);
+    snapScroll(scrollEl, 44, idx=>{
+      const banco = BANCOS_OB[Math.min(idx, BANCOS_OB.length-1)];
+      cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+        const sel = i===idx;
+        el.classList.toggle('sel', sel);
+        el.style.color = sel ? '#fff' : '';
+      });
+      document.getElementById('inp-banco-ob').value = banco;
+      document.getElementById('banco-ob-txt').textContent = banco;
+      document.getElementById('banco-ob-txt').style.color = '#111';
+      document.getElementById('inp-banco-ob-otro').style.display = 'none';
+    });
+  }
+}
+
+window.toggleScrollCorteOb = function(){
+  const wrap = document.getElementById('corte-ob-scroll-wrap');
+  const isOpen = wrap.style.display === 'block';
+  // Cerrar scroll banco si está abierto
+  document.getElementById('banco-ob-scroll-wrap').style.display = 'none';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    const currentCorte = parseInt(document.getElementById('inp-corte-ob').value) || 1;
+    const cont = document.getElementById('scroll-corte-ob-items');
+    const scrollEl = document.getElementById('scroll-corte-ob');
+    cont.innerHTML = Array.from({length:31},(_,i)=>i+1).map(n=>`
+      <div class="scroll-item${n===currentCorte?' sel':''}" data-n="${n}" style="${n===currentCorte?'color:#fff;':''}">${n}</div>
+    `).join('');
+    setTimeout(()=>{
+      scrollEl.scrollTop = (currentCorte-1)*44;
+      cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+        const sel = i===(currentCorte-1);
+        el.classList.toggle('sel', sel);
+        el.style.color = sel ? '#fff' : '';
+      });
+    }, 50);
+    snapScroll(scrollEl, 44, idx=>{
+      const dia = Math.min(31, Math.max(1, idx+1));
+      cont.querySelectorAll('.scroll-item').forEach((el,i)=>{
+        const sel = i===idx;
+        el.classList.toggle('sel', sel);
+        el.style.color = sel ? '#fff' : '';
+      });
+      document.getElementById('inp-corte-ob').value = dia;
+      document.getElementById('corte-ob-txt').textContent = 'Día ' + dia;
+      document.getElementById('corte-ob-txt').style.color = '#111';
+    });
+  }
+}
+
 window.closeCortePopup = function(e){
   if(!e || e.target===document.getElementById('corte-popup-overlay'))
     document.getElementById('corte-popup-overlay').classList.remove('open');
@@ -802,9 +910,16 @@ window.volverOnboarding = function(){
 
 function resetFormTarjeta(){
   document.getElementById('inp-banco-ob').value = '';
-  document.getElementById('inp-banco-ob').style.display = 'none';
+  document.getElementById('banco-ob-txt').textContent = 'Seleccionar banco...';
+  document.getElementById('banco-ob-txt').style.color = '#999';
+  document.getElementById('banco-ob-scroll-wrap').style.display = 'none';
+  document.getElementById('inp-banco-ob-otro').style.display = 'none';
   document.getElementById('inp-apodo-ob').value = '';
   document.getElementById('inp-limite-ob').value = '';
+  document.getElementById('inp-corte-ob').value = '';
+  document.getElementById('corte-ob-txt').textContent = 'Seleccionar día...';
+  document.getElementById('corte-ob-txt').style.color = '#999';
+  document.getElementById('corte-ob-scroll-wrap').style.display = 'none';
   document.getElementById('banco-selector-btn').classList.remove('selected');
   document.getElementById('banco-selector-txt').textContent = 'Seleccionar banco...';
   document.querySelectorAll('#banco-popup-overlay .banco-check').forEach(c=>{ c.classList.remove('checked'); c.textContent=''; });
