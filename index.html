@@ -2359,10 +2359,12 @@ async function renderPromociones(){
     });
     lista.innerHTML = html;
     lista.querySelectorAll('.btn-ver-promo').forEach(function(btn){
-      btn.addEventListener('click', function(e){ 
+      btn.onclick = function(e){ 
         e.stopPropagation();
-        verPromo(btn.dataset.id); 
-      });
+        e.preventDefault();
+        verPromo(btn.getAttribute('data-id')); 
+        return false;
+      };
     });
     lista.querySelectorAll('.banco-header').forEach(function(header){
       header.addEventListener('click', function(){
