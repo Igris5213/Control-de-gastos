@@ -1052,7 +1052,8 @@ function updateCards(){
         const tP = perfil?.tarjetas?.find(x=>x.id===p.tarjetaId);
         const cP = tP ? tP.corte : 1;
         const mPag = p.mesesPagados !== undefined ? p.mesesPagados : Math.min(p.meses, Math.max(0, getMesPagoPromo(cP, p.creadoEn, fin)));
-        return mPag > 0 && mPag <= p.meses;
+        // Aparece si aún quedan pagos por hacer (mesesPagados < meses)
+        return mPag < p.meses;
       })
       .reduce((s,p)=>s+p.mensualidad, 0);
     const usado = usadoMovs; // Solo gastos del corte actual
