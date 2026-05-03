@@ -3527,6 +3527,13 @@ window.confirmarFechaExt = function(){
 }
 
 window.openModalExt = function(){
+  // Limpiar todos los campos
+  document.getElementById('inp-comercio-ext').value = '';
+  document.getElementById('inp-concepto-ext').value = '';
+  document.getElementById('inp-monto-ext').value = '';
+  document.getElementById('inp-fecha-ext').value = '';
+  document.getElementById('fecha-ext-txt').textContent = 'Seleccionar fecha';
+  document.getElementById('fecha-ext-txt').style.color = '#999';
   const el = document.getElementById('modal-ext-overlay');
   if(el) el.classList.add('open');
 }
